@@ -2,7 +2,13 @@
   "gitbook": "3.x.x",
   "variables": {
     "versions": {
-      "swarm": "1.0.0.Beta8"
+      "swarm": "1.0.0.Beta8",
+      "jdk": "8",
+      "maven": "3.3.9",
+      "postgresql": "9.5.2",
+      "keycloak": "1.8.0.Final",
+      "docker": "1.9.1",
+      "docker_compose": "1.7.0"
     }
   }
 }
