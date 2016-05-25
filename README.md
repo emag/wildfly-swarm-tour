@@ -1,6 +1,8 @@
 # WildFly Swarm Tour
 
-WildFly Swarm を一通り触ってみるガイドです。
+[WildFly Swarm](http://wildfly-swarm.io/) を一通り触ってみるガイドです。
+
+WildFly Swarm のバージョンは {{book.versions.swarm}} です。
 
 ソースコードは以下にあります。
 

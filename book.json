@@ -1,0 +1,8 @@
+{
+  "gitbook": "3.x.x",
+  "variables": {
+    "versions": {
+      "swarm": "1.0.0.Beta8"
+    }
+  }
+}
