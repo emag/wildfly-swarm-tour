@@ -1,3 +1,7 @@
-# My Awesome Book
+# WildFly Swarm Tour
 
-This file file serves as your book's preface, a great place to describe your book's content and ideas.
+WildFly Swarm を一通り触ってみるガイドです。
+
+ソースコードは以下にあります。
+
+https://github.com/emag/wildfly-swarm-tour
