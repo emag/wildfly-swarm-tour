@@ -1,8 +1,8 @@
 # WildFly Swarm Tour
 
-[WildFly Swarm](http://wildfly-swarm.io/) を一通り触ってみるガイドです。
+本ドキュメントは [WildFly Swarm](http://wildfly-swarm.io/) を一通り触ってみるためのガイドです。
 
-入門として、JAX-RS + CDI + JPA を用いた簡単な CRUD アプリケーションを作ってみます。
+まず Hello World レベルのもので動作確認をし、その後 JAX-RS + CDI + JPA を用いた簡単な CRUD アプリケーションを作ります。
 
 ついでに Integration Test や [Keycloak](http://keycloak.jboss.org/) を用いた認証、Docker イメージの作成あたりまでやってみたいと思います。
 
