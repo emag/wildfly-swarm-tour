@@ -1,5 +1,6 @@
 {
   "gitbook": "3.x.x",
+  "root": "./docs",
   "variables": {
     "versions": {
       "swarm": "1.0.0.Beta8",
