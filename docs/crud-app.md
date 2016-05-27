@@ -1,6 +1,6 @@
 # CRUD アプリの作成
 
-ようやく CRUD アプリを作っていきます。簡単な一言メモみたいなアプリで、`lifelog` という名前をつけました(安直...)。`initial/lifelog` にどんどん書いてきましょう。
+ようやく CRUD アプリを作っていきます。簡単な一言メモみたいなアプリで、`lifelog` という名前をつけました(安直...)。`lifelog/initial` にどんどん書いてきましょう。
 
 ## pom.xml
 
@@ -9,27 +9,18 @@
 ``` xml
 <?xml version="1.0" encoding="UTF-8"?>
 <project ...>
-  <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <artifactId>wildfly-swarm-tour-parent</artifactId>
-    <groupId>com.example</groupId>
-    <version>1.0.0</version>
-  </parent>
+  [...]
 
-  <artifactId>lifelog</artifactId>
-
+  <!-- (1) -->
   <dependencies>
-    <!-- (1) -->
     <dependency>
       <groupId>org.wildfly.swarm</groupId>
-      <artifactId>jaxrs-weld</artifactId>
-      <version>${version.wildfly-swarm}</version>
+      <artifactId>jaxrs-cdi</artifactId>
     </dependency>
     <dependency>
       <groupId>org.wildfly.swarm</groupId>
       <artifactId>jpa</artifactId>
-      <version>${version.wildfly-swarm}</version>
     </dependency>
 
     <!-- (2) -->
@@ -37,32 +28,16 @@
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <version>${version.lombok}</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.wildfly.swarm</groupId>
-        <artifactId>wildfly-swarm-plugin</artifactId>
-        <configuration>
-          <mainClass>wildflyswarmtour.lifelog.App</mainClass>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+  [...]
 
 </project>
 ```
 
-ポイントは以下です。
-
-|ポイント|説明                                       |
-|----|-----------------------------------------|
-|(1) |今回は JAX-RS と CDI、JPA が使えるようにしておきます       |
-|(2) |もちろん好きなライブラリも使えます                        |
-
-(2) に関しては今回 lombok は provided と lombok 自体は実際にアーカイブに含めないのであまり影響ありませんが、ランタイム時にも必要なライブラリがある場合は、後述する `deployment.addAllDependencies()` を App クラスで設定します。
+今回は JAX-RS と CDI、JPA を使えるようにしておきます(1)。また、サードパーティのライブラリを利用します(2)。なお、lombok 自体はコンパイル時のみにしか利用しないため(provided スコープ)、実際にアーカイブに含めないのであまり影響ありませんが、ランタイム時にも必要なライブラリがある場合は、後述する `deployment.addAllDependencies()` を App クラスで設定します。
 
 では次からいろいろと作ってみましょう。
 
@@ -78,8 +53,6 @@
         http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
 
   <persistence-unit name="primary">
-    <!-- 利用するデータソースの指定 -->
-    <jta-data-source>java:jboss/datasources/lifelogDS</jta-data-source>
     <properties>
       <!-- アプリケーションのデプロイ時にテーブルの削除と作成を行う -->
       <property name="javax.persistence.schema-generation.database.action" value="drop-and-create"/>
@@ -98,7 +71,7 @@
 次に JPA の Entity クラス(データベースのテーブルとマッピングされるクラス)を作成します。
 
 ``` java
-package wildflyswarmtour.lifelog.domain.model;
+package lifelog.domain.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -126,14 +99,14 @@ public class Entry implements Serializable {
   private Integer id;
 
   @Column(nullable = false)
-  private LocalDateTime timestamp;
+  private LocalDateTime createdAt;
 
   @Column(nullable = false)
   private String description;
 
   @PrePersist
-  private void setTimestamp() {
-    setTimestamp(LocalDateTime.now());
+  private void setCreatedAt() {
+    setCreatedAt(LocalDateTime.now());
   }
 
 }
@@ -148,7 +121,7 @@ public class Entry implements Serializable {
 Java EE 7 の JPA 2.1 ではフィールドに Date and Time API はそのままでは使えないので、以下のようなコンバータを用意してあげる必要があります。
 
 ``` java
-package wildflyswarmtour.lifelog.domain.model.converter;
+package lifelog.domain.model.converter;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
@@ -171,7 +144,7 @@ public class LocalDateTimeConverter implements AttributeConverter<LocalDateTime,
 }
 ```
 
-また、`javax.persistence.PrePersist` というアノテーションが付与されたメソッドでは、このエンティティが永続化される直前で呼ばれるコールバック処理を記載できます。ここでは timestamp フィールドに `LocalDateTime.now()` を設定しています。こうしておくと次節での Repository クラスでこの処理を書かなくてすみます。@Prepersist 以外にも以下が存在します。たとえば @PostXxx なんかはログ処理なんかを書いても良いですね。
+また、Entry クラスにある `javax.persistence.PrePersist` というアノテーションが付与されたメソッドは、このエンティティが永続化される直前で呼ばれるコールバック処理を記載できます。ここでは createdAt フィールドに `LocalDateTime.now()` を設定しています。こうしておくと次節での Repository クラスでこの処理を書かなくてすみます。@Prepersist 以外にも以下が存在します。たとえば @PostXxx なんかはログ処理なんかを書いても良いですね。
 
 * @PrePersist
 * @PreRemove
@@ -186,9 +159,9 @@ public class LocalDateTimeConverter implements AttributeConverter<LocalDateTime,
 実際にデータベースとやり取りする Repository クラスは以下のようにします。JPA における各操作のインターフェースである `javax.persistence.EntityManager` をインジェクションし、ここから各種 CRUD 操作を行います。また、クラスレベルで `javax.transaction.Transactional` を設定しているため、すべてのメソッドにおいてトランザクションが走ります。
 
 ``` java
-package wildflyswarmtour.lifelog.domain.repository;
+package lifelog.domain.repository;
 
-import wildflyswarmtour.lifelog.domain.model.Entry;
+import lifelog.domain.model.Entry;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.EntityManager;
@@ -203,39 +176,53 @@ public class EntryRepository {
   @PersistenceContext
   private EntityManager em;
 
-  // 全件取得、タイムスタンプの降順。エントリが 1 件も存在しない場合は空リストを返す
+  /**
+   * 全件取得、タイムスタンプの降順。エントリが 1 件も存在しない場合は空リストを返す
+   */
   public List<Entry> findAll() {
     return em
-      .createQuery("SELECT e FROM Entry e ORDER BY  e.timestamp DESC", Entry.class)
-      .getResultList();
+        .createQuery("SELECT e FROM Entry e ORDER BY  e.createdAt DESC", Entry.class)
+        .getResultList();
   }
 
-  // id をキーに 1 件取得
+  /**
+   * id をキーに 1 件取得
+   */
   public Entry find(Integer id) {
     return em.find(Entry.class, id);
   }
 
-  // 新規作成・更新処理
+  /**
+   * 新規作成・更新処理
+   */
   public Entry save(Entry entry) {
-    if (entry.getId() == null) { // id を持っていない場合は新しい Entry なので、永続化
+    // id を持っていない場合は新しい Entry なので、永続化
+    if (entry.getId() == null) {
       em.persist(entry);
       return entry;
-    } else { // id がある場合は既存エントリの更新なので、そのままマージ
+    // id がある場合は既存エントリの更新なので、そのままマージ
+    } else {
       return em.merge(entry);
     }
   }
 
-  // 全件削除。実体は delete(Entry entry) をぐるぐる呼んでるだけ
+  /**
+   * 全件削除。実体は delete(Entry entry) をぐるぐる呼んでるだけ
+   */
   public void deleteAll() {
     findAll().forEach(this::delete);
   }
 
-  // id をキーに 1 件削除。実体は delete(Entry entry)
+  /**
+   * id をキーに 1 件削除。実体は delete(Entry entry)
+   */
   public void delete(Integer id) {
     delete(em.find(Entry.class, id));
   }
 
-  // 渡された Entry インスタンスに対して削除処理
+  /**
+   * 渡された Entry インスタンスに対して削除処理
+   */
   private void delete(Entry entry) {
     em.remove(entry);
   }
@@ -248,10 +235,10 @@ public class EntryRepository {
 JAX-RS などのプレゼンテーション層から呼ばれることを想定した Service クラスです。実際の処理は先ほど作った EntryRepository に委譲しています。
 
 ``` java
-package wildflyswarmtour.lifelog.domain.service;
+package lifelog.domain.service;
 
-import wildflyswarmtour.lifelog.domain.model.Entry;
-import wildflyswarmtour.lifelog.domain.repository.EntryRepository;
+import lifelog.domain.model.Entry;
+import lifelog.domain.repository.EntryRepository;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -290,13 +277,13 @@ public class EntryService {
 
 ## Resource
 
-JAX-RS のリソースクラスです。JSON でリクエスト受け付け(javax.ws.rs.Consumes)、レスポンス(javax.ws.rs.Produces)をしています。また、CRUD 操作の実体は EntryService クラスに処理を委譲しています。
+JAX-RS のリソースクラスです。JSON でリクエストを受け付け(javax.ws.rs.Consumes)、レスポンス(javax.ws.rs.Produces)をしています。また、CRUD 操作の実体は EntryService クラスに処理を委譲しています。
 
 ``` java
-package wildflyswarmtour.lifelog.api;
+package lifelog.api;
 
-import wildflyswarmtour.lifelog.domain.model.Entry;
-import wildflyswarmtour.lifelog.domain.service.EntryService;
+import lifelog.domain.model.Entry;
+import lifelog.domain.service.EntryService;
 
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -320,19 +307,23 @@ public class EntryController {
   @Inject
   private EntryService entryService;
 
-  // GET /entries
-  // JSON でエントリ一覧を返す。1 件もエントリがないときは空配列で返す
+  /**
+   * GET /entries
+   * JSON でエントリ一覧を返す。1 件もエントリがないときは空配列で返す
+   */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public List<EntryResponse> findALL() {
     List<Entry> allEntries = entryService.findAll();
     return allEntries.stream()
-      .map(EntryResponse::from)
-      .collect(Collectors.toList());
+        .map(EntryResponse::from)
+        .collect(Collectors.toList());
   }
 
-  // GET /entries/:id
-  // その id のエントリがないときは 404
+  /**
+   * GET /entries/:id
+   * その id のエントリがないときは 404
+   */
   @GET
   @Path("{id}")
   @Produces(MediaType.APPLICATION_JSON)
@@ -346,23 +337,27 @@ public class EntryController {
     return Response.ok(EntryResponse.from(entry)).build();
   }
 
-  // POST /entries
-  // JSON を受け取り、その内容をもって新規作成
+  /**
+   * POST /entries
+   * JSON を受け取り、その内容をもって新規作成
+   */
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   public Response create(@Context UriInfo uriInfo, Entry entry) {
     Entry created = entryService.save(entry);
 
     return Response
-      .created(
-        uriInfo.getAbsolutePathBuilder()
-          .path(String.valueOf(created.getId()))
-          .build())
-      .build();
+        .created(
+            uriInfo.getAbsolutePathBuilder()
+                .path(String.valueOf(created.getId()))
+                .build())
+        .build();
   }
 
-  // PUT /entries/:id
-  // JSON を受け取り、指定された id に対して更新。その id のエントリがないときは 404
+  /**
+   * PUT /entries/:id
+   * JSON を受け取り、指定された id に対して更新。その id のエントリがないときは 404
+   */
   @PUT
   @Path("{id}")
   @Consumes(MediaType.APPLICATION_JSON)
@@ -379,16 +374,20 @@ public class EntryController {
     return Response.ok().build();
   }
 
-  // DELETE /entries
-  // 全件削除
+  /**
+   *  DELETE /entries
+   * 全件削除
+   */
   @DELETE
   public Response deleteAll() {
     entryService.deleteAll();
     return Response.noContent().build();
   }
 
-  // DELETE /entries/:id
-  // 指定された id の削除。その id のエントリがないときは 404
+  /**
+   * DELETE /entries/:id
+   * 指定された id の削除。その id のエントリがないときは 404
+   */
   @DELETE
   @Path("{id}")
   public Response delete(@PathParam("id") Integer id) {
@@ -407,12 +406,12 @@ public class EntryController {
 見たとおりという感じなのですが、GET で返す際、エンティティの Entry ではなく、以下のような EntryResponse に変換してから返しています。
 
 ``` java
-package wildflyswarmtour.lifelog.api;
+package lifelog.api;
 
+import lifelog.domain.model.Entry;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import wildflyswarmtour.lifelog.domain.model.Entry;
 
 import java.io.Serializable;
 
@@ -422,11 +421,11 @@ import java.io.Serializable;
 public class EntryResponse implements Serializable {
 
   private Integer id;
-  private String timestamp;
+  private String createdAt;
   private String description;
 
   public static EntryResponse from(Entry entry) {
-    return new EntryResponse(entry.getId(), entry.getTimestamp().toString(), entry.getDescription());
+    return new EntryResponse(entry.getId(), entry.getCreatedAt().toString(), entry.getDescription());
   }
 
 }
@@ -435,7 +434,7 @@ public class EntryResponse implements Serializable {
 保守性のためビューを分けるという意味もあるのですが、timestamp フィールドを LocalDateTime のまま返すと以下のようなレスポンスになってしまいました。
 
 ``` json
-"timestamp": {
+"createdAt": {
   "chronology": {
     "id": "ISO",
     "calendarType": "iso8601"
@@ -463,7 +462,7 @@ public class EntryResponse implements Serializable {
 ここまではふつうの Java EE アプリケーション開発という感じでした。最後に Hello World の時と同様、WildFly Swarm 固有のクラスとして WildFly の起動からアプリケーションのデプロイまでを表現する App クラスを作成します。
 
 ``` java
-package wildflyswarmtour.lifelog;
+package lifelog;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.ClassLoaderAsset;
@@ -475,47 +474,47 @@ import org.wildfly.swarm.jpa.JPAFraction;
 public class App {
 
   public static void main(String[] args) throws Exception {
-    Container container = new Container();
+    Container container = new Container(args);
 
-    // (1) JDBC ドライバの登録 ここでは WildFly に同梱されている H2 データベースのものを利用
+    // (1) データソース設定
     container.fraction(new DatasourcesFraction()
-      .jdbcDriver("h2", (d) -> {
-        d.driverClassName("org.h2.Driver");
-        d.xaDatasourceClass("org.h2.jdbcx.JdbcDataSource");
-        d.driverModuleName("com.h2database.h2");
-      })
-      // (2) アプリケーションで利用するデータソース(lifelogDS)の設定
-      .dataSource("lifelogDS", (ds) -> {
-        ds.driverName("h2");
-        ds.connectionUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE");
-        ds.userName("sa");
-        ds.password("sa");
-      })
+        // (1-1) JDBC ドライバの登録 ここでは WildFly に同梱されている H2 データベースのものを利用
+        .jdbcDriver("h2", (d) -> {
+          d.driverClassName("org.h2.Driver");
+          d.xaDatasourceClass("org.h2.jdbcx.JdbcDataSource");
+          d.driverModuleName("com.h2database.h2");
+        })
+        // (1-2) アプリケーションで利用するデータソース(lifelogDS)の設定
+        .dataSource("lifelogDS", (ds) -> {
+          ds.driverName("h2");
+          ds.connectionUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE");
+          ds.userName("sa");
+          ds.password("sa");
+        })
     );
 
-    // (3) Default の Datasource を lifelogDS に設定。これを設定しない場合は ExampleDS というデータソース設定が作られる。
+    // (2) Default の Datasource を lifelogDS に設定。これを設定しない場合は ExampleDS というデータソース設定が作られる。
     container.fraction(new JPAFraction()
-      .inhibitDefaultDatasource()
-      .defaultDatasource("jboss/datasources/lifelogDS")
+        .inhibitDefaultDatasource()
+        .defaultDatasource("jboss/datasources/lifelogDS")
     );
 
     JAXRSArchive deployment = ShrinkWrap.create(JAXRSArchive.class);
     deployment.addPackages(true, App.class.getPackage());
 
-    // (4) persistence.xml をアーカイブに含める
+    // (3) persistence.xml をアーカイブに含める
     deployment.addAsWebInfResource(
-      new ClassLoaderAsset("META-INF/persistence.xml", App.class.getClassLoader()), "classes/META-INF/persistence.xml");
+        new ClassLoaderAsset("META-INF/persistence.xml", App.class.getClassLoader()), "classes/META-INF/persistence.xml");
 
     container
-      .start()
-      .deploy(deployment);
-
+        .start()
+        .deploy(deployment);
   }
 
 }
 ```
 
-(1) - (4) にデータソースおよび JPA 関係の設定を追加しています。
+(1) - (3) にデータソースおよび JPA 関係の設定を追加しています。
 
 > 先ほど pom.xml の設定を見ていた時にちょろっと話題に出しましたが、コンパイル時だけではなくランタイムにも必要なライブラリで、
 > かつ WildFly の module にも持ってなさそうなものがある場合は、deployment.addAllDependencies() を追加しておくとすべての依存性を追加してくれます。
@@ -525,7 +524,7 @@ public class App {
 Container の設定は LifeLogContainer#newContainer() というメソッドに切り出しました。
 
 ``` java
-package wildflyswarmtour.lifelog;
+package lifelog;
 
 import org.wildfly.swarm.container.Container;
 import org.wildfly.swarm.datasources.DatasourcesFraction;
@@ -533,26 +532,26 @@ import org.wildfly.swarm.jpa.JPAFraction;
 
 public class LifeLogContainer {
 
-  public static Container newContainer() throws Exception {
-    Container container = new Container();
+  public static Container newContainer(String[] args) throws Exception {
+    Container container = new Container(args);
 
     container.fraction(new DatasourcesFraction()
-      .jdbcDriver("h2", (d) -> {
-        d.driverClassName("org.h2.Driver");
-        d.xaDatasourceClass("org.h2.jdbcx.JdbcDataSource");
-        d.driverModuleName("com.h2database.h2");
-      })
-      .dataSource("lifelogDS", (ds) -> {
-        ds.driverName("h2");
-        ds.connectionUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE");
-        ds.userName("sa");
-        ds.password("sa");
-      })
+        .jdbcDriver("h2", (d) -> {
+          d.driverClassName("org.h2.Driver");
+          d.xaDatasourceClass("org.h2.jdbcx.JdbcDataSource");
+          d.driverModuleName("com.h2database.h2");
+        })
+        .dataSource("lifelogDS", (ds) -> {
+          ds.driverName("h2");
+          ds.connectionUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE");
+          ds.userName("sa");
+          ds.password("sa");
+        })
     );
 
     container.fraction(new JPAFraction()
-      .inhibitDefaultDatasource()
-      .defaultDatasource("jboss/datasources/lifelogDS")
+        .inhibitDefaultDatasource()
+        .defaultDatasource("jboss/datasources/lifelogDS")
     );
 
     return container;
@@ -564,7 +563,7 @@ public class LifeLogContainer {
 デプロイ関係は `LifeLogDeployment#deployment()` としています。
 
 ``` java
-package wildflyswarmtour.lifelog;
+package lifelog;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.ClassLoaderAsset;
@@ -577,7 +576,7 @@ public class LifeLogDeployment {
 
     deployment.addPackages(true, App.class.getPackage());
     deployment.addAsWebInfResource(
-      new ClassLoaderAsset("META-INF/persistence.xml", App.class.getClassLoader()), "classes/META-INF/persistence.xml");
+        new ClassLoaderAsset("META-INF/persistence.xml", App.class.getClassLoader()), "classes/META-INF/persistence.xml");
 
     return deployment;
   }
@@ -588,14 +587,14 @@ public class LifeLogDeployment {
 今作った 2 つのクラスを使うと、App は以下のようになります。
 
 ``` java
-package wildflyswarmtour.lifelog;
+package lifelog;
 
 public class App {
 
   public static void main(String[] args) throws Exception {
-    LifeLogContainer.newContainer()
-      .start()
-      .deploy(LifeLogDeployment.deployment());
+    LifeLogContainer.newContainer(args)
+        .start()
+        .deploy(LifeLogDeployment.deployment());
   }
 
 }
@@ -604,28 +603,29 @@ public class App {
 ここまでで以下のようなプロジェクト構成になります。
 
 ``` sh
-lifelog
+.
+├── mvnw
+├── mvnw.cmd
 ├── pom.xml
 └── src
     └── main
         ├── java
-        │   └── wildflyswarmtour
-        │       └── lifelog
-        │           ├── App.java
-        │           ├── LifeLogContainer.java
-        │           ├── LifeLogDeployment.java
-        │           ├── api
-        │           │   ├── EntryController.java
-        │           │   └── EntryResponse.java
-        │           └── domain
-        │               ├── model
-        │               │   ├── Entry.java
-        │               │   └── converter
-        │               │       └── LocalDateTimeConverter.java
-        │               ├── repository
-        │               │   └── EntryRepository.java
-        │               └── service
-        │                   └── EntryService.java
+        │   └── lifelog
+        │       ├── App.java
+        │       ├── LifeLogContainer.java
+        │       ├── LifeLogDeployment.java
+        │       ├── api
+        │       │   ├── EntryController.java
+        │       │   └── EntryResponse.java
+        │       └── domain
+        │           ├── model
+        │           │   ├── Entry.java
+        │           │   └── converter
+        │           │       └── LocalDateTimeConverter.java
+        │           ├── repository
+        │           │   └── EntryRepository.java
+        │           └── service
+        │               └── EntryService.java
         └── resources
             └── META-INF
                 └── persistence.xml
@@ -634,13 +634,13 @@ lifelog
 ではビルド及び実行してみます。
 
 ``` sh
-$ ./mvnw clean package -pl lifelog && java -jar lifelog/target/lifelog-swarm.jar
+$ ./mvnw clean package && java -jar target/lifelog-swarm.jar
 ```
 
 とりあえず全件取得。
 
 ``` sh
-$ curl -X GET localhost:8080/entries
+$ curl localhost:8080/entries
 []
 ```
 
@@ -657,11 +657,11 @@ $ curl -X POST -H "Content-Type: application/json" -d '{"description" : "test"}'
 この Location ヘッダに対して GET してみると、
 
 ``` sh
-$ curl -X GET localhost:8080/entries/1 | jq .
+$ curl localhost:8080/entries/1 | jq .
 {
-  "description": "test",
-  "timestamp": "2015-12-20T14:51:02.084",
-  "id": 1
+  "id": 1,
+  "createdAt": "2016-05-27T20:23:58.437",
+  "description": "test"
 }
 ```
 
@@ -674,11 +674,11 @@ $ curl -X PUT -H "Content-Type: application/json" -d '{"description" : "updated"
 ```
 
 ``` sh
-$ curl -X GET localhost:8080/entries/1 | jq .
+$ curl localhost:8080/entries/1 | jq .
 {
-  "description": "updated",
-  "timestamp": "2015-12-20T14:51:02.084",
-  "id": 1
+  "id": 1,
+  "createdAt": "2016-05-27T20:23:58.437",
+  "description": "updated"
 }
 ```
 
@@ -692,7 +692,7 @@ $ curl -X DELETE localhost:8080/entries/1 -v
 ```
 
 ``` sh
-$ curl -X GET localhost:8080/entries/1 -I
+$ curl localhost:8080/entries/1 -I
 HTTP/1.1 404 Not Found
 ```
 
