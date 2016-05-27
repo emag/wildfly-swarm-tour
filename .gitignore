@@ -1,3 +1,54 @@
+# Numerous always-ignore extensions
+*.diff
+*.err
+*.orig
+*.log
+*.rej
+*.swo
+*.swp
+*.vi
+*~
+*.sass-cache
+
+# OS or Editor folders
+*.iml
+.idea
+.DS_Store
+.cache
+.project
+.settings
+.classpath
+.tmproj
+nbproject
+Thumbs.db
+
+# Maven output folder
+target
+
+# Gradle
+.gradle
+build
+gradle-app.setting
+out
+
+# JRebel
+rebel.xml
+
+# Ansible
+hosts
+
+# Keycloak
+src/main/webapp/WEB-INF/keycloak.json
+
+# Docker
+.env
+
+# WildFly Swarm
+overlays
+
+# h2
+*.db
+
+# gitbook
 node_modules
 _book
-.DS_Store
