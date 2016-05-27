@@ -112,7 +112,7 @@ public class Entry implements Serializable {
 }
 ```
 
-フィールド数も少なくてちょっと味気ないですが、timestamp フィールドは `java.time.LocalDateTime` 型にするというちょっと味な真似をしてみました。
+フィールド数も少なくてちょっと味気ないですが、createdAt フィールドは `java.time.LocalDateTime` 型にするというちょっと味な真似をしてみました。
 
 といっても以下 [@lbtc_xxx](https://twitter.com/lbtc_xxx) さんのブログを真似しただけですが。。
 
