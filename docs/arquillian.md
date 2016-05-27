@@ -12,19 +12,17 @@ http://arquillian.org/
 
 https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/testing_with_arquillian.html
 
-では lifelog-arquillian プロジェクトの pom.xml を見てみますと、テスト用の設定として以下が追加されています。
+では `arquillian/initial` プロジェクトの pom.xml を見てみますと、テスト用の設定として以下が追加されています。
 
 ``` xml
 <dependency>
   <groupId>org.wildfly.swarm</groupId>
   <artifactId>arquillian</artifactId>
-  <version>${version.wildfly-swarm}</version>
   <scope>test</scope>
 </dependency>
 <dependency>
   <groupId>org.jboss.arquillian.junit</groupId>
   <artifactId>arquillian-junit-container</artifactId>
-  <version>${version.org.arquillian}</version>
   <scope>test</scope>
 </dependency>
 ```
@@ -52,7 +50,6 @@ https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/testing_with
 
 ``` xml
 <plugin>
-  <groupId>org.apache.maven.plugins</groupId>
   <artifactId>maven-failsafe-plugin</artifactId>
   <version>${version.maven-failsafe-plugin}</version>
   <executions>
@@ -66,11 +63,14 @@ https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/testing_with
 </plugin>
 ```
 
-では実際にテストを記述します。
+では実際にテストを `src/test` 配下に記述します。ここでは lifelog.api.EntryController のテストを作成します。
 
 ``` java
-package wildflyswarmtour.lifelog.api;
+package lifelog.api;
 
+import lifelog.LifeLogContainer;
+import lifelog.LifeLogDeployment;
+import lifelog.domain.model.Entry;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
@@ -79,9 +79,6 @@ import org.junit.runner.RunWith;
 import org.wildfly.swarm.ContainerFactory;
 import org.wildfly.swarm.container.Container;
 import org.wildfly.swarm.jaxrs.JAXRSArchive;
-import wildflyswarmtour.lifelog.LifeLogContainer;
-import wildflyswarmtour.lifelog.LifeLogDeployment;
-import wildflyswarmtour.lifelog.domain.model.Entry;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -94,8 +91,8 @@ import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
 import java.util.List;
 
-import static org.hamcrest.core.Is.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertThat;
 
 // (1) Arquillian でテストする場合は以下のように @RunWith を指定
 @RunWith(Arquillian.class)
@@ -111,7 +108,7 @@ public class EntryControllerIT implements ContainerFactory {
   @Override
   public Container newContainer(String... args) throws Exception {
     // コンテナの設定。LifeLogContainer.newContainer() をそのまま使う
-    return LifeLogContainer.newContainer();
+    return LifeLogContainer.newContainer(args);
   }
 
   // (5) testable = false の時に使う。ホスト名やポート番号がインジェクションされる
@@ -183,27 +180,27 @@ public class EntryControllerIT implements ContainerFactory {
 それでは以下コマンドでテストを実行します。
 
 ``` sh
-$ ./mvnw clean verify -pl lifelog-arquillian
+$ ./mvnw clean verify
 [...]
 -------------------------------------------------------
  T E S T S
 -------------------------------------------------------
-Running wildflyswarmtour.lifelog.api.EntryControllerIT
+Running lifelog.api.EntryControllerIT
 [...]
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 68.808 sec - in wildflyswarmtour.lifelog.api.EntryControllerIT
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 18.308 sec - in lifelog.api.EntryControllerIT
 
 Results :
 
 Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
 
 [INFO]
-[INFO] --- maven-failsafe-plugin:2.19:verify (default) @ lifelog-arquillian ---
+[INFO] --- maven-failsafe-plugin:2.19.1:verify (default) @ lifelog ---
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time: 27.195 s
-[INFO] Finished at: 2016-02-11T23:34:38+09:00
-[INFO] Final Memory: 45M/490M
+[INFO] Total time: 31.533 s
+[INFO] Finished at: 2016-05-28T01:51:30+09:00
+[INFO] Final Memory: 100M/556M
 [INFO] ------------------------------------------------------------------------
 ```
 
