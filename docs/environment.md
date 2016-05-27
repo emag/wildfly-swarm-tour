@@ -1,5 +1,7 @@
 # 環境
 
+このドキュメントでは以下環境を想定しています。
+
 * WildFly Swarm {{book.versions.swarm}}
 * JDK {{book.versions.jdk}}
 * Maven {{book.versions.maven}}
@@ -8,7 +10,7 @@
 * Docker {{book.versions.docker}}
 * Docker Compose {{book.versions.docker_compose}}
 
-とりあえず最低限 JDK 8 をインストールしておいていただければすぐに試せます。
+とりあえず最低限 JDK 8 をインストールしておいていただければ Hello World はすぐに試せます。
 
 OS はなんでもよいですが、Fedora {{book.versions.fedora}}/CentOS {{book.versions.centos}} 64bit で動作確認しています。道中何回かコマンドの実行がありますが、Windows な方は適宜読み替えていただければと。すみません。
 
