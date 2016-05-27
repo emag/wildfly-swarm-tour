@@ -1,0 +1,23 @@
+database:
+  driver:
+    name: "h2"
+    className: "org.h2.Driver"
+    xaDatasourceClass: "org.h2.jdbcx.JdbcDataSource"
+    moduleName: "com.h2database.h2"
+  connection:
+    url: "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+  userName: "sa"
+  password: "sa"
+---
+project:
+  stage: production
+database:
+  driver:
+    name: "postgresql"
+    className: "org.postgresql.Driver"
+    xaDatasourceClass: "org.postgresql.xa.PGXADataSource"
+    moduleName: "org.postgresql"
+  connection:
+    url: "jdbc:postgresql://localhost:5432/lifelog"
+  userName: "lifelog"
+  password: "lifelog"

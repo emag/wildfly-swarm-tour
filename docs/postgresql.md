@@ -4,33 +4,44 @@
 
 ただ、せっかくなので今回は PostgreSQL での場合もやってみたいと思います。開発は H2、プロダクションは PostgreSQL みたいなイメージで、起動時にシステムプロパティで切り替えられるようにしましょう。
 
-PostgreSQL はお好みの方法で用意してもらえればと思いますが、データベース名、データベースのユーザ、パスワードは `lifelog` とします。リスンするポートはデフォルtの 5432 でオッケーです。
+PostgreSQL はお好みの方法で用意してもらえればと思いますが以下を想定しています。
+
+* データベース名、データベースのユーザ、パスワード： lifelog
+* ホスト: localhost
+* ポート: 5432
 
 PostgreSQL が初めてという方でかつ、Docker が利用できる環境であれば以下のようにしてコンテナを用意するのが楽だと思います。
 
 > このエントリでは最後の章で Docker を使うので、そういう意味でも Docker での利用をおすすめします。
 
-※ `/tmp` は適当なパスに変更してください。
-
 ``` sh
 $ docker run --name lifelog-db \
   -e POSTGRES_USER=lifelog -e POSTGRES_PASSWORD=lifelog \
-  -v /tmp/lifelog/pgdata/data:/var/lib/postgresql/data \
   -p 5432:5432 \
-  -d postgres:9.4.5
+  -d postgres:<version>
 ```
+
+`<version>` の部分は今回は {{book.versions.postgresql}} とします。
+
+> 本来こういった永続化されるデータに対しては Data Volume Container を用意したほうがよいですが、簡単のため割愛します。
 
 ちゃんとデータベースができたか、psql クライアントで確認してみます。
 
 ``` sh
-$ docker run --link lifelog-db:db \
-  --rm -it postgres:9.4.5 \
+$ docker run --rm -it \
+  --link lifelog-db:db \
+  postgres:<version> \
   sh -c 'exec psql -h "$DB_PORT_5432_TCP_ADDR" -p "$DB_PORT_5432_TCP_PORT" -U lifelog'
+```
+
+上記コマンドを実行すると以下のようなプロンプトが表示されるので、適宜入力していきます。
+
+``` sh
 Password for user lifelog: <- lifelog と入力
-psql (9.4.5)
+psql (PostgreSQL のバージョン)
 Type "help" for help.
 
-lifelog=# \l
+lifelog=# \l <- \l と入力
                                  List of databases
    Name    |  Owner   | Encoding |  Collate   |   Ctype    |   Access privileges
 -----------+----------+----------+------------+---------- --+-----------------------
@@ -51,7 +62,7 @@ https://hub.docker.com/_/postgres/
 
 PostgreSQL がセットアップできたらアプリケーションから使えるようにします。
 
-lifelog-postgresql の pom.xml を見てみてください。
+`postgresql/initial` の pom.xml を見てみてください。
 
 まずは利用する PostgreSQL JDBC ドライバの依存性を追加されています。
 
@@ -67,6 +78,8 @@ lifelog-postgresql の pom.xml を見てみてください。
 
 ``` xml
 <build>
+  <finalName>${project.artifactId}</finalName>
+
   <resources>
     <resource>
       <directory>src/main/resources</directory>
@@ -77,19 +90,18 @@ lifelog-postgresql の pom.xml を見てみてください。
 </build>
 ```
 
-最後に maven-failsafe-plugin で自分で追加した module を読めるようにする設定(`<configuration>` 要素)を追加しています。これがなくてもプロダクションコードは動きますが、Arquillian 側で PostgreSQL の JDBC ドライバの module.xml が読めません。
+また、maven-failsafe-plugin に自分で追加した module を読めるようにする設定(`<configuration>` 要素)を追加しています。これがなくてもプロダクションコードは動きますが、Arquillian 側で PostgreSQL の JDBC ドライバの module.xml が読めません。
 
 ``` xml
 <plugin>
-<groupId>org.apache.maven.plugins</groupId>
-<artifactId>maven-failsafe-plugin</artifactId>
-<version>${version.maven-failsafe-plugin}</version>
-[...]
-<configuration>
-  <systemPropertyVariables>
-    <swarm.build.modules>${project.build.outputDirectory}/modules/</swarm.build.modules>
-  </systemPropertyVariables>
-</configuration>
+  <artifactId>maven-failsafe-plugin</artifactId>
+  <version>${version.maven-failsafe-plugin}</version>
+  <configuration>
+    <systemPropertyVariables>
+      <swarm.build.modules>${project.build.outputDirectory}/modules/</swarm.build.modules>
+    </systemPropertyVariables>
+  </configuration>
+  [...]
 </plugin>
 ```
 
@@ -111,96 +123,172 @@ lifelog-postgresql の pom.xml を見てみてください。
 
 `${version.postgresql}` の部分はビルド時に置換されます。
 
-最後に LifeLogContainer に対して、H2 と PosetgreSQL をシステムプロパティ(`swarm.lifelog.production` )によって切り替えられるようにしておきます。
+次に、システムプロパティの値によって H2 と PostgreSQL を切り替えられるようにする部分です。
+
+まず `stage-config.yml` というファイルを以下の内容で `src/main/resources` 以下に配置します。
+
+``` yml
+database:
+  driver:
+    name: "h2"
+    className: "org.h2.Driver"
+    xaDatasourceClass: "org.h2.jdbcx.JdbcDataSource"
+    moduleName: "com.h2database.h2"
+  connection:
+    url: "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+  userName: "sa"
+  password: "sa"
+---
+project:
+  stage: production
+database:
+  driver:
+    name: "postgresql"
+    className: "org.postgresql.Driver"
+    xaDatasourceClass: "org.postgresql.xa.PGXADataSource"
+    moduleName: "org.postgresql"
+  connection:
+    url: "jdbc:postgresql://localhost:5432/lifelog"
+  userName: "lifelog"
+  password: "lifelog"
+```
+
+`project: stage:` の部分でステージを指定し、各ステージは `---` で区切ります。一番上のように何も指定しない場合は default ステージとみなされます。なお、このファイルは `stage-config.yml` がクラスパス上に存在する場合、自動的に読み込まれます。
+
+その他の情報については以下ドキュメントを参考ください。
+
+https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/configuration/index.html#_configuration_overlays_using_stage_properties
+
+次に `stage-config.yml` をもとに DatasourcesFraction を組み立てるクラス(LifeLogConfiguration)を用意します。これも別に用意せずに LifeLogContainer にベタ書きでもいいですが、今後 Fraction の設定も少し増えるのでわけておきます。
 
 ``` java
-package wildflyswarmtour.lifelog;
+package lifelog;
 
 import org.wildfly.swarm.container.Container;
 import org.wildfly.swarm.datasources.DatasourcesFraction;
 import org.wildfly.swarm.jpa.JPAFraction;
 
+public class LifeLogConfiguration {
+
+  private Container container;
+
+  LifeLogConfiguration(Container container) {
+    this.container = container;
+  }
+
+  DatasourcesFraction datasourcesFraction(String datasourceName) {
+    return new DatasourcesFraction()
+        .jdbcDriver(resolve("database.driver.name"), (d) -> {
+          d.driverClassName(resolve("database.driver.className"));
+          d.xaDatasourceClass(resolve("database.driver.xaDatasourceClass"));
+          d.driverModuleName(resolve("database.driver.moduleName"));
+        })
+        .dataSource(datasourceName, (ds) -> {
+          ds.driverName(resolve("database.driver.name"));
+          ds.connectionUrl(resolve("database.connection.url"));
+          ds.userName(resolve("database.userName"));
+          ds.password(resolve("database.password"));
+        });
+  }
+
+  JPAFraction jpaFraction(String datasourceName) {
+    return new JPAFraction()
+        .inhibitDefaultDatasource()
+        .defaultDatasource("jboss/datasources/" + datasourceName);
+  }
+
+  private String resolve(String key) {
+    return container.stageConfig().resolve(key).getValue();
+  }
+
+}
+```
+
+private メソッドの resolve(String key) が肝のところです。`container.stageConfig().resolve(key).getValue()` の key は `stage-config.yml` の各キーをピリオド区切りで渡します。例えば `database: connection: url` なら `database.connection.url` です。
+
+> ついでに JPAFraction を提供するメソッドも用意しています。
+
+最後に LifeLogConfiguration を利用するように LifeLogContainer を変更します。
+
+``` java
+package lifelog;
+
+import org.wildfly.swarm.container.Container;
+
 public class LifeLogContainer {
 
-  public static Container newContainer() throws Exception {
-    Container container = new Container();
+  private static final String DATASOURCE_NAME = "lifelogDS";
 
-    boolean production = Boolean.parseBoolean(System.getProperty("swarm.lifelog.production"));
+  public static Container newContainer(String[] args) throws Exception {
+    Container container = new Container(args);
 
-    if (production) {
-      container.fraction(new DatasourcesFraction()
-        .jdbcDriver("org.postgresql", (d) -> {
-          d.driverClassName("org.postgresql.Driver");
-          d.xaDatasourceClass("org.postgresql.xa.PGXADataSource");
-          d.driverModuleName("org.postgresql");
-        })
-        .dataSource("lifelogDS", (ds) -> {
-          ds.driverName("org.postgresql");
-          ds.connectionUrl("jdbc:postgresql://localhost:5432/lifelog");
-          ds.userName("lifelog");
-          ds.password("lifelog");
-        })
-      );
-    } else {
-      // h2 の時の設定
-    }
+    LifeLogConfiguration configuration = new LifeLogConfiguration(container);
 
-    [...]
+    container
+        .fraction(configuration.datasourcesFraction(DATASOURCE_NAME))
+        .fraction(configuration.jpaFraction(DATASOURCE_NAME));
+
+    return container;
+  }
+
 }
 ```
 
 プロジェクト構成はおおよそ以下のようになります。
 
 ``` sh
-lifelog-postgresql
+.
+├── mvnw
+├── mvnw.cmd
 ├── pom.xml
 └── src
     ├── main
-    │   ├── java
-    │   │   └── wildflyswarmtour
-    │   │       └── lifelog
-    │   │           ├── App.java
-    │   │           ├── LifeLogContainer.java
-    │   │           ├── LifeLogDeployment.java
-    │   │           ├── api
-    │   │           │   ├── EntryController.java
-    │   │           │   └── EntryResponse.java
-    │   │           └── domain
-    │   │               ├── model
-    │   │               │   ├── Entry.java
-    │   │               │   └── converter
-    │   │               │       └── LocalDateTimeConverter.java
-    │   │               ├── repository
-    │   │               │   └── EntryRepository.java
-    │   │               └── service
-    │   │                   └── EntryService.java
-    │   └── resources
-    │       ├── META-INF
-    │       │   └── persistence.xml
-    │       └── modules
-    │           └── org
-    │               └── postgresql
-    │                   └── main
-    │                       └── module.xml
+    │   ├── java
+    │   │   └── lifelog
+    │   │       ├── App.java
+    │   │       ├── LifeLogConfiguration.java
+    │   │       ├── LifeLogContainer.java
+    │   │       ├── LifeLogDeployment.java
+    │   │       ├── api
+    │   │       │   ├── EntryController.java
+    │   │       │   └── EntryResponse.java
+    │   │       └── domain
+    │   │           ├── model
+    │   │           │   ├── Entry.java
+    │   │           │   └── converter
+    │   │           │       └── LocalDateTimeConverter.java
+    │   │           ├── repository
+    │   │           │   └── EntryRepository.java
+    │   │           └── service
+    │   │               └── EntryService.java
+    │   └── resources
+    │       ├── META-INF
+    │       │   └── persistence.xml
+    │       ├── modules
+    │       │   └── org
+    │       │       └── postgresql
+    │       │           └── main
+    │       │               └── module.xml
+    │       └── project-stages.yml
     └── test
         └── java
-            └── wildflyswarmtour
-                └── lifelog
-                    └── api
-                        └── EntryControllerIT.java
+            └── lifelog
+                └── api
+                    └── EntryControllerIT.java
 ```
 
-ここまで出来て、PostgreSQL も起動していることも確認したうえで lifelog をビルド、実行します。
+ここまで出来て、PostgreSQL も起動していることも確認したうえで lifelog をビルド、実行します。ステージを指定する場合はシステムプロパティ `swarm.project.stage` を渡します。
 
 ``` sh
-$ ./mvnw clean package -pl lifelog-postgresql \
-  && java -Dswarm.lifelog.production=true -jar lifelog-postgresql/target/lifelog-postgresql-swarm.jar
+$ ./mvnw clean package && java -jar target/lifelog-swarm.jar -Dswarm.project.stage=production
 ```
 
 POST したり psql でデータベースの中を見たりして、実際に PostgreSQL が使われていることを確認してみてください。
 
+// TODO 1.0.0.CR1 では stage config が読めない
+
 ついでに Arquillian でのテストも PostgreSQL を使ってやってみましょう。LifeLogContainer を共有しているため、特にテスト側で変更するところはありません。
 
 ``` sh
-$ ./mvnw clean verify -pl lifelog-postgresql -Dswarm.lifelog.production=true
+$ ./mvnw clean verify -Dswarm.project.stage=production
 ```

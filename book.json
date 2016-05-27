@@ -6,7 +6,7 @@
       "swarm": "1.0.0.CR1",
       "jdk": "8",
       "maven": "3.3.9",
-      "postgresql": "9.5.2",
+      "postgresql": "9.5.3",
       "keycloak": "1.8.0.Final",
       "docker": "1.9.1",
       "docker_compose": "1.7.0",
