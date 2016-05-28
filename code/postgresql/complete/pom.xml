@@ -21,6 +21,8 @@
     <version.resteasy>3.0.14.Final</version.resteasy>
 
     <version.maven-failsafe-plugin>2.19.1</version.maven-failsafe-plugin>
+    <version.docker-maven-plugin>0.15.3</version.docker-maven-plugin>
+    <version.postgresql-server>9.5.3</version.postgresql-server>
   </properties>
 
   <dependencyManagement>
@@ -133,5 +135,65 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>it</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.fabric8</groupId>
+            <artifactId>docker-maven-plugin</artifactId>
+            <version>${version.docker-maven-plugin}</version>
+            <configuration>
+              <logDate>default</logDate>
+              <autoPull>true</autoPull>
+              <images>
+                <image>
+                  <alias>lifelog-db</alias>
+                  <name>postgres:${version.postgresql-server}</name>
+                  <run>
+                    <env>
+                      <POSTGRES_USER>lifelog</POSTGRES_USER>
+                      <POSTGRES_PASSWORD>lifelog</POSTGRES_PASSWORD>
+                    </env>
+                    <ports>
+                      <port>15432:5432</port>
+                    </ports>
+                    <wait>
+                      <log>database system is ready to accept connections</log>
+                      <time>20000</time>
+                    </wait>
+                    <log>
+                      <prefix>LIFELOG_DB</prefix>
+                      <color>yellow</color>
+                    </log>
+                  </run>
+                </image>
+              </images>
+            </configuration>
+
+            <executions>
+              <execution>
+                <id>start</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>build</goal>
+                  <goal>start</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>stop</id>
+                <phase>post-integration-test</phase>
+                <goals>
+                  <goal>stop</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>

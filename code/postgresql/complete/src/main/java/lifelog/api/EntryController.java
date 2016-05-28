@@ -1,6 +1,5 @@
 package lifelog.api;
 
-import lifelog.LifeLogConfiguration;
 import lifelog.domain.model.Entry;
 import lifelog.domain.service.EntryService;
 

@@ -10,6 +10,19 @@ database:
   password: "sa"
 ---
 project:
+  stage: it
+database:
+  driver:
+    name: "postgresql"
+    className: "org.postgresql.Driver"
+    xaDatasourceClass: "org.postgresql.xa.PGXADataSource"
+    moduleName: "org.postgresql"
+  connection:
+    url: "jdbc:postgresql://localhost:15432/lifelog"
+  userName: "lifelog"
+  password: "lifelog"
+---
+project:
   stage: production
 database:
   driver:
