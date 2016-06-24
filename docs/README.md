@@ -15,5 +15,5 @@ Java EE、特に JAX-RS + CDI + JPA を簡単に使ったことがあって、�
 ## その他情報
 
 * WildFly Swarm のバージョン: {{book.versions.swarm}}
-* このドキュメントのありか: https://github.com/emag/wildfly-swarm-tour-docs
+* このドキュメントのありか: https://github.com/emag/wildfly-swarm-tour
 * 筆者 Twitter: https://twitter.com/emaggame
