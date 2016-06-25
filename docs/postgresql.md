@@ -159,7 +159,7 @@ https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/configuratio
 
 > なお、`stage-config.yml` という名前にした場合、このファイルがモジュール内やアプリケーションのクラスパスに存在すると自動的に読み込まれますが、値を変更するたびにビルドし直すのも面倒ですので外出ししています。また、java コマンド実行時のカレントパスにあった場合も読まれますが、Arquillian 実行時はカレントパスが変わるため、自分で指定する方が無難です。
 >
-> https://github.com/wildfly-swarm/wildfly-swarm-core/blob/{{book.versions.swarm_core}}/container/api/src/main/java/org/wildfly/swarm/cli/CommandLine.java#L89-L109
+> https://github.com/wildfly-swarm/wildfly-swarm-core/blob/{{book.versions.swarm_core}}/container/api/src/main/java/org/wildfly/swarm/cli/CommandLine.java#L105-L125
 
 次に `lifelog-stage-config.yml` をもとに DatasourcesFraction を組み立てるクラス(LifeLogConfiguration)を用意します。これも別に用意せずに LifeLogContainer にベタ書きでもいいですが、今後 Fraction の設定も少し増えるのでわけておきます。ついでに JPAFraction を提供するメソッドも作っておきました。
 

@@ -305,7 +305,7 @@ deployment.setContextRoot("helloworld");
 
 これは前述の jboss-web.xml での設定をプログラムでできるようにしています。その他のメソッドについては javadoc を参照ください。
 
-http://wildfly-swarm.github.io/wildfly-swarm/{{book.versions.swarm}}/apidocs/org/wildfly/swarm/undertow/descriptors/JBossWebContainer.html
+https://wildfly-swarm.github.io/wildfly-swarm-javadocs/{{book.versions.swarm}}/apidocs/org/wildfly/swarm/undertow/descriptors/JBossWebContainer.html
 
 ### 動作確認
 
