@@ -2,7 +2,7 @@
 
 お次は認証・認可処理を追加したいと思います。ここでは Keycloak というサーバアプリケーションを利用します。
 
-http://keycloak.jboss.org/
+http://www.keycloak.org/
 
 Keycloak は SSO 機構を提供します。また、OAuth2 や OpenID Connect など様々な方式をサポートしているほか、Twitter などのソーシャルログイン機能も用意されているなど、なかなか高機能です。今回はこの Keycloak を用いて lifelog の POST/PUT/DELETE の API に認証をかけます。
 

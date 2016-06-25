@@ -4,7 +4,7 @@
 
 まず Hello World レベルのもので動作確認をし、その後 JAX-RS + CDI + JPA を用いた簡単な CRUD アプリケーションを作ります。
 
-ついでに Integration Test や [Keycloak](http://keycloak.jboss.org/) を用いた認証、Docker イメージの作成あたりまでやってみたいと思います。
+ついでに Integration Test や [Keycloak](http://www.keycloak.org/) を用いた認証、Docker イメージの作成あたりまでやってみたいと思います。
 
 Java EE、特に JAX-RS + CDI + JPA を簡単に使ったことがあって、さらに WildFly 自体もデータソースなど設定したことがあると理解は楽勝で、ふつうの Java EE での開発との差異を感じていただければと思います。
 
