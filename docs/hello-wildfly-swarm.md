@@ -341,7 +341,11 @@ $ curl localhost:8080/helloworld/hello
 
 https://github.com/wildfly-swarm/wildfly-swarm-examples/tree/{{book.versions.swarm}}/jaxrs/jaxrs-war
 
-この場合は App クラスでやっていたような Container の設定に制限がかかります。この Hello World のように何も設定しない場合は war でも問題ないですが、多かれ少なかれなんらかの設定はするかと思いますので、たいていは jar でパッケージングすることになります。本ドキュメントでも基本的に jar パッケージとしています。
+また main() を設定 することもできます。
+
+https://github.com/wildfly-swarm/wildfly-swarm-examples/tree/{{book.versions.swarm}}/jaxrs/jaxrs-war-main
+
+既存のアプリケーションをとりあえず WildFly Swarm に対応させるのに便利かと思います。
 
 war パッケージングに関するドキュメントは以下です。
 
