@@ -5,7 +5,7 @@
 
   <groupId>wildflyswarmtour</groupId>
   <artifactId>helloworld</artifactId>
-  <version>1.0.0.CR1</version>
+  <version>1.0.0.CR2</version>
   <packaging>jar</packaging>
 
   <properties>

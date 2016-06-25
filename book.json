@@ -3,8 +3,8 @@
   "root": "./docs",
   "variables": {
     "versions": {
-      "swarm": "1.0.0.CR1",
-      "swarm_core": "1.0.0.CR3",
+      "swarm": "1.0.0.CR2",
+      "swarm_core": "1.0.1.Final",
       "jdk": "8",
       "maven": "3.3.9",
       "postgresql": "9.5.3",
