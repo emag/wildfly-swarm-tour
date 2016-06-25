@@ -13,9 +13,7 @@ Keycloak を利用した場合の大ざっぱな仕組みとしては以下の�
 1. Keycloak サーバに TOKEN をもらう
 1. 1 でもらった TOKEN をヘッダにつけて lifelog の API をリクエストする
 
-なお、以下のエントリを真似しています(ただし 1.6.0 向け)。このドキュメントではあまり Keycloak の設定方法には触れないので、ご興味がある方はご一読ください。
-
-[Getting started with Keycloak - Securing a REST Service](http://blog.keycloak.org/2015/10/getting-started-with-keycloak-securing.html)
+ここではすでに用意した Keycloak の設定ファイルを利用します。ご自分で設定してみたい場合は [付録 Keycloak の設定](keycloak-settings.md) を参照ください。
 
 ## Keycloak の実行
 
