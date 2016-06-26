@@ -178,6 +178,8 @@ keycloak.json の auth-server-url を `change_me` に変更しておきます。
   java -Dswarm.auth.server.url=http://localhost:18080/auth -Dswarm.project.stage.file=file://(pwd)/lifelog/lifelog-project-stages.yml -Dswarm.project.stage=production -jar lifelog/target/lifelog-swarm.jar
 ```
 
+## 認証を含んだ IT の実施
+
 せっかくなので EntryControllerIT もこの認証に対応しておきましょう。
 
 まずは PostgreSQL と同じように、IT 実行前に Keycloak Server を起動するようにしておきます。pom.xml の it プロファイルに以下を追記します。

@@ -290,6 +290,8 @@ $ ./mvnw clean package \
 
 POST したり psql でデータベースの中を見たりして、実際に PostgreSQL が使われていることを確認してみてください。
 
+## IT 用のステージを用意
+
 ついでに Arquillian でのテストも PostgreSQL を使ってやってみましょう。LifeLogContainer を共有しているため、特にテスト側で変更するところはありません。
 
 ``` sh
