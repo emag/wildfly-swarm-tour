@@ -8,6 +8,10 @@ WildFly Swarm は今回取り上げたものの他に Logstash や Netflix OSS�
 
 https://github.com/wildfly-swarm/booker
 
+また、Monolithic なアプリケーションを Microservices に変えていくチュートリアルもあり、これもまたおもしろいです。
+
+http://wildfly-swarm.io/tutorial/
+
 ## 参考
 
 * [wildfly-swarm.io](http://wildfly-swarm.io/)
