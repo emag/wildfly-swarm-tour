@@ -29,7 +29,6 @@ public class LifeLogConfiguration {
 
   JPAFraction jpaFraction(String datasourceName) {
     return new JPAFraction()
-      .inhibitDefaultDatasource()
       .defaultDatasource("jboss/datasources/" + datasourceName);
   }
 

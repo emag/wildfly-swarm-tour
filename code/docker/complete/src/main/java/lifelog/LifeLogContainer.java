@@ -12,7 +12,6 @@ public class LifeLogContainer {
     LifeLogConfiguration configuration = new LifeLogConfiguration(container);
 
     container
-      .fraction(configuration.datasourcesFraction(DATASOURCE_NAME))
       .fraction(configuration.jpaFraction(DATASOURCE_NAME));
 
     return container;

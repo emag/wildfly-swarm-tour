@@ -24,7 +24,6 @@ public class LifeLogContainer {
     );
 
     container.fraction(new JPAFraction()
-        .inhibitDefaultDatasource()
         .defaultDatasource("jboss/datasources/lifelogDS")
     );
 
