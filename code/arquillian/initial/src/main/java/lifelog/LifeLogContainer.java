@@ -1,15 +1,15 @@
 package lifelog;
 
-import org.wildfly.swarm.container.Container;
+import org.wildfly.swarm.Swarm;
 import org.wildfly.swarm.datasources.DatasourcesFraction;
 import org.wildfly.swarm.jpa.JPAFraction;
 
 public class LifeLogContainer {
 
-  public static Container newContainer(String[] args) throws Exception {
-    Container container = new Container(args);
+  public static Swarm newContainer(String[] args) throws Exception {
+    Swarm swarm = new Swarm(args);
 
-    container.fraction(new DatasourcesFraction()
+    swarm.fraction(new DatasourcesFraction()
         .jdbcDriver("h2", (d) -> {
           d.driverClassName("org.h2.Driver");
           d.xaDatasourceClass("org.h2.jdbcx.JdbcDataSource");
@@ -23,11 +23,11 @@ public class LifeLogContainer {
         })
     );
 
-    container.fraction(new JPAFraction()
+    swarm.fraction(new JPAFraction()
         .defaultDatasource("jboss/datasources/lifelogDS")
     );
 
-    return container;
+    return swarm;
   }
 
 }

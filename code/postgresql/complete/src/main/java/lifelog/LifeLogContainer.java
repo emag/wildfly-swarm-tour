@@ -1,21 +1,21 @@
 package lifelog;
 
-import org.wildfly.swarm.container.Container;
+import org.wildfly.swarm.Swarm;
 
 public class LifeLogContainer {
 
   private static final String DATASOURCE_NAME = "lifelogDS";
 
-  public static Container newContainer(String[] args) throws Exception {
-    Container container = new Container(args);
+  public static Swarm newContainer(String[] args) throws Exception {
+    Swarm swarm = new Swarm(args);
 
-    LifeLogConfiguration configuration = new LifeLogConfiguration(container);
+    LifeLogConfiguration configuration = new LifeLogConfiguration(swarm);
 
-    container
+    swarm
         .fraction(configuration.datasourcesFraction(DATASOURCE_NAME))
         .fraction(configuration.jpaFraction(DATASOURCE_NAME));
 
-    return container;
+    return swarm;
   }
 
 }

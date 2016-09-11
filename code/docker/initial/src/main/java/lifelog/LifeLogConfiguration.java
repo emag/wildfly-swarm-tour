@@ -1,15 +1,15 @@
 package lifelog;
 
-import org.wildfly.swarm.container.Container;
+import org.wildfly.swarm.Swarm;
 import org.wildfly.swarm.datasources.DatasourcesFraction;
 import org.wildfly.swarm.jpa.JPAFraction;
 
 public class LifeLogConfiguration {
 
-  private Container container;
+  private Swarm swarm;
 
-  LifeLogConfiguration(Container container) {
-    this.container = container;
+  LifeLogConfiguration(Swarm swarm) {
+    this.swarm = swarm;
   }
 
   DatasourcesFraction datasourcesFraction(String datasourceName) {
@@ -33,7 +33,7 @@ public class LifeLogConfiguration {
   }
 
   private String resolve(String key) {
-    return container.stageConfig().resolve(key).getValue();
+    return swarm.stageConfig().resolve(key).getValue();
   }
 
 }
