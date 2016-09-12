@@ -16,13 +16,12 @@
 
     <version.wildfly-swarm>${project.version}</version.wildfly-swarm>
     <version.lombok>1.16.8</version.lombok>
-    <version.postgresql>9.4.1208</version.postgresql>
     <version.arquillian>1.1.10.Final</version.arquillian>
     <version.resteasy>3.0.14.Final</version.resteasy>
 
     <version.maven-failsafe-plugin>2.19.1</version.maven-failsafe-plugin>
     <version.docker-maven-plugin>0.15.3</version.docker-maven-plugin>
-    <version.postgresql-server>9.5.3</version.postgresql-server>
+    <version.postgresql>9.5.3</version.postgresql>
     <version.keycloak-server>1.9.8.Final</version.keycloak-server>
   </properties>
 
@@ -30,7 +29,7 @@
     <dependencies>
       <dependency>
         <groupId>org.wildfly.swarm</groupId>
-        <artifactId>bom</artifactId>
+        <artifactId>bom-all</artifactId>
         <version>${version.wildfly-swarm}</version>
         <type>pom</type>
         <scope>import</scope>
@@ -64,11 +63,6 @@
       <artifactId>lombok</artifactId>
       <version>${version.lombok}</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>${version.postgresql}</version>
     </dependency>
 
     <dependency>
@@ -143,6 +137,26 @@
 
   <profiles>
     <profile>
+      <id>postgresql</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.wildfly.swarm</groupId>
+          <artifactId>jpa</artifactId>
+          <exclusions>
+            <exclusion>
+              <groupId>org.wildfly.swarm</groupId>
+              <artifactId>h2</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>org.wildfly.swarm</groupId>
+          <artifactId>postgresql</artifactId>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <profile>
       <id>it</id>
       <build>
         <plugins>
@@ -156,7 +170,7 @@
               <images>
                 <image>
                   <alias>lifelog-db</alias>
-                  <name>postgres:${version.postgresql-server}</name>
+                  <name>postgres:${version.postgresql}</name>
                   <run>
                     <env>
                       <POSTGRES_USER>lifelog</POSTGRES_USER>

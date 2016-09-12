@@ -14,11 +14,6 @@ public class LifeLogConfiguration {
 
   DatasourcesFraction datasourcesFraction(String datasourceName) {
     return new DatasourcesFraction()
-      .jdbcDriver(resolve("database.driver.name"), (d) -> {
-        d.driverClassName(resolve("database.driver.className"));
-        d.xaDatasourceClass(resolve("database.driver.xaDatasourceClass"));
-        d.driverModuleName(resolve("database.driver.moduleName"));
-      })
       .dataSource(datasourceName, (ds) -> {
         ds.driverName(resolve("database.driver.name"));
         ds.connectionUrl(resolve("database.connection.url"));
