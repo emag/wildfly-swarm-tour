@@ -8,8 +8,8 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.wildfly.swarm.ContainerFactory;
-import org.wildfly.swarm.container.Container;
+import org.wildfly.swarm.Swarm;
+import org.wildfly.swarm.arquillian.CreateSwarm;
 import org.wildfly.swarm.jaxrs.JAXRSArchive;
 
 import javax.ws.rs.client.Client;
@@ -29,7 +29,7 @@ import static org.junit.Assert.assertThat;
 
 // (1) Arquillian でテストする場合は以下のように @RunWith を指定
 @RunWith(Arquillian.class)
-public class EntryControllerIT implements ContainerFactory {
+public class EntryControllerIT {
 
   @Deployment(testable = false) // (2) testable=false としておくと、コンテナの外からのテスト(@RunAsClient アノテーションも同様)
   public static JAXRSArchive createDeployment() {
@@ -37,11 +37,11 @@ public class EntryControllerIT implements ContainerFactory {
     return LifeLogDeployment.deployment();
   }
 
-  // (4) org.wildfly.swarm.container.Container を implements した場合、このメソッドでコンテナ設定を行う
-  @Override
-  public Container newContainer(String... args) throws Exception {
+  // (4) @CreateSwarm を付与したメソッドでコンテナ設定を行う
+  @CreateSwarm
+  public static Swarm newContainer() throws Exception {
     // コンテナの設定。LifeLogContainer.newContainer() をそのまま使う
-    return LifeLogContainer.newContainer(args);
+    return LifeLogContainer.newContainer(new String[0]);
   }
 
   // (5) testable = false の時に使う。ホスト名やポート番号がインジェクションされる
