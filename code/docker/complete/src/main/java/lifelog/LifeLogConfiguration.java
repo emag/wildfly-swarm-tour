@@ -13,13 +13,24 @@ public class LifeLogConfiguration {
   }
 
   DatasourcesFraction datasourcesFraction(String datasourceName) {
-    return new DatasourcesFraction()
-      .dataSource(datasourceName, ds -> ds
+    DatasourcesFraction datasourcesFraction = new DatasourcesFraction()
+      .dataSource(datasourceName, (ds) -> ds
         .driverName(resolve("database.driver.name"))
         .connectionUrl(databaseConnectionUrl())
         .userName(resolve("database.userName"))
         .password(resolve("database.password"))
       );
+
+    if(swarm.stageConfig().getName().equals("it")
+      || swarm.stageConfig().getName().equals("production")) {
+      datasourcesFraction.jdbcDriver("postgresql", (d) -> d
+        .driverClassName(resolve("database.driver.className"))
+        .xaDatasourceClass(resolve("database.driver.xaDatasourceClass"))
+        .driverModuleName(resolve("database.driver.moduleName"))
+      );
+    }
+
+    return datasourcesFraction;
   }
 
   JPAFraction jpaFraction(String datasourceName) {
