@@ -41,7 +41,7 @@ public class LifeLogConfiguration {
   private String databaseConnectionUrl() {
     String urlFromEnv = System.getenv("DB_PORT_5432_TCP_ADDR") + ":" + System.getenv("DB_PORT_5432_TCP_PORT");
 
-    return urlFromEnv.equals(":") ?
+    return urlFromEnv.equals("null:null") ?
       resolve("database.connection.url") :
       "jdbc:postgresql://" + urlFromEnv + "/lifelog";
   }
