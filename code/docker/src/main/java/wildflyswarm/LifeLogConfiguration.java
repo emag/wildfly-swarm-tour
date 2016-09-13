@@ -1,4 +1,4 @@
-package lifelog;
+package wildflyswarm;
 
 import org.wildfly.swarm.Swarm;
 import org.wildfly.swarm.datasources.DatasourcesFraction;
@@ -16,7 +16,7 @@ public class LifeLogConfiguration {
     DatasourcesFraction datasourcesFraction = new DatasourcesFraction()
       .dataSource(datasourceName, (ds) -> ds
         .driverName(resolve("database.driver.name"))
-        .connectionUrl(resolve("database.connection.url"))
+        .connectionUrl(databaseConnectionUrl())
         .userName(resolve("database.userName"))
         .password(resolve("database.password"))
       );
@@ -36,6 +36,14 @@ public class LifeLogConfiguration {
   JPAFraction jpaFraction(String datasourceName) {
     return new JPAFraction()
       .defaultDatasource("jboss/datasources/" + datasourceName);
+  }
+
+  private String databaseConnectionUrl() {
+    String urlFromEnv = System.getenv("DB_PORT_5432_TCP_ADDR") + ":" + System.getenv("DB_PORT_5432_TCP_PORT");
+
+    return urlFromEnv.equals(":") ?
+      resolve("database.connection.url") :
+      "jdbc:postgresql://" + urlFromEnv + "/lifelog";
   }
 
   private String resolve(String key) {

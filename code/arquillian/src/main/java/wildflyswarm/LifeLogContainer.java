@@ -1,4 +1,4 @@
-package lifelog;
+package wildflyswarm;
 
 import org.wildfly.swarm.Swarm;
 import org.wildfly.swarm.datasources.DatasourcesFraction;

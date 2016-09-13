@@ -1,7 +1,8 @@
 package lifelog.api;
 
-import lifelog.LifeLogContainer;
-import lifelog.LifeLogDeployment;
+import wildflyswarm.LifeLogConfiguration;
+import wildflyswarm.LifeLogContainer;
+import wildflyswarm.LifeLogDeployment;
 import lifelog.domain.model.Entry;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
@@ -34,7 +35,7 @@ public class EntryControllerIT {
   @Deployment(testable = false) // (2) testable=false としておくと、コンテナの外からのテスト(@RunAsClient アノテーションも同様)
   public static JAXRSArchive createDeployment() {
     // (3) デプロイするアーカイブ設定。LifeLogDeployment.deployment() をそのまま使う
-    return LifeLogDeployment.deployment();
+    return LifeLogDeployment.deployment().addClasses(LifeLogContainer.class, LifeLogConfiguration.class);
   }
 
   // (4) @CreateSwarm を付与したメソッドでコンテナ設定を行う

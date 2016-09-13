@@ -46,7 +46,7 @@
         <artifactId>wildfly-swarm-plugin</artifactId>
         <version>${version.wildfly-swarm}</version>
         <configuration>
-          <mainClass>helloworld.App</mainClass>
+          <mainClass>wildflyswarm.Bootstrap</mainClass>
         </configuration>
         <executions>
           <execution>

@@ -58,7 +58,7 @@
         <artifactId>wildfly-swarm-plugin</artifactId>
         <version>${version.wildfly-swarm}</version>
         <configuration>
-          <mainClass>lifelog.App</mainClass>
+          <mainClass>wildflyswarm.Bootstrap</mainClass>
         </configuration>
         <executions>
           <execution>

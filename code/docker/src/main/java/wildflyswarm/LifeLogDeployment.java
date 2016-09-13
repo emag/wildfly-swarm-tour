@@ -1,4 +1,4 @@
-package lifelog;
+package wildflyswarm;
 
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.Node;
@@ -18,9 +18,9 @@ public class LifeLogDeployment {
   public static JAXRSArchive deployment() {
     JAXRSArchive archive = ShrinkWrap.create(JAXRSArchive.class);
 
-    archive.addPackages(true, App.class.getPackage());
+    archive.addPackages(true, "lifelog");
     archive.addAsWebInfResource(
-      new ClassLoaderAsset("META-INF/persistence.xml", App.class.getClassLoader()), "classes/META-INF/persistence.xml");
+      new ClassLoaderAsset("META-INF/persistence.xml", Bootstrap.class.getClassLoader()), "classes/META-INF/persistence.xml");
 
     archive.as(Secured.class)
       .protect("/entries/*")
@@ -43,13 +43,23 @@ public class LifeLogDeployment {
     StringBuilder sb = new StringBuilder();
     try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
       reader.lines().forEach(line -> {
-        line = line.replace("change_me", System.getProperty("swarm.auth.server.url", "http://localhost:18080/auth"));
+        line = line.replace("change_me", authServerUrl());
         sb.append(line).append("\n");
       });
     } catch (IOException e) {
       e.printStackTrace();
     }
     deployment.add(new ByteArrayAsset(sb.toString().getBytes()), keycloakPath);
+  }
+
+  private static String authServerUrl() {
+    String urlFromEnv = System.getenv("AUTH_PORT_8080_TCP_ADDR") + ":" + System.getenv("AUTH_PORT_8080_TCP_PORT");
+
+    if (! urlFromEnv.equals(":")) {
+      return "http://" + urlFromEnv +  "/auth";
+    }
+
+    return System.getProperty("swarm.auth.server.url", "http://localhost:18080/auth");
   }
 
 }

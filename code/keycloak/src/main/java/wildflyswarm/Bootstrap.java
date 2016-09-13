@@ -1,11 +1,11 @@
-package lifelog;
+package wildflyswarm;
 
-public class App {
+public class Bootstrap {
 
   public static void main(String[] args) throws Exception {
     LifeLogContainer.newContainer(args)
-        .start()
-        .deploy(LifeLogDeployment.deployment());
+      .start()
+      .deploy(LifeLogDeployment.deployment());
   }
 
 }
