@@ -9,10 +9,10 @@ public class App {
   public static void main(String[] args) throws Exception {
     Swarm swarm = new Swarm(args);
 
-    JAXRSArchive deployment = ShrinkWrap.create(JAXRSArchive.class);
-    deployment.addPackages(true, App.class.getPackage());
+    JAXRSArchive archive = ShrinkWrap.create(JAXRSArchive.class);
+    archive.addPackages(true, App.class.getPackage());
 
-    swarm.start().deploy(deployment);
+    swarm.start().deploy(archive);
   }
 
 }

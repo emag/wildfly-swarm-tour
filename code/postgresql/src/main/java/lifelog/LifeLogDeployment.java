@@ -7,13 +7,13 @@ import org.wildfly.swarm.jaxrs.JAXRSArchive;
 public class LifeLogDeployment {
 
   public static JAXRSArchive deployment() {
-    JAXRSArchive deployment = ShrinkWrap.create(JAXRSArchive.class);
+    JAXRSArchive archive = ShrinkWrap.create(JAXRSArchive.class);
 
-    deployment.addPackages(true, App.class.getPackage());
-    deployment.addAsWebInfResource(
+    archive.addPackages(true, App.class.getPackage());
+    archive.addAsWebInfResource(
         new ClassLoaderAsset("META-INF/persistence.xml", App.class.getClassLoader()), "classes/META-INF/persistence.xml");
 
-    return deployment;
+    return archive;
   }
 
 }

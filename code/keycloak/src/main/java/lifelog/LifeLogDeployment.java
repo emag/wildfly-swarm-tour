@@ -16,19 +16,19 @@ import java.io.InputStreamReader;
 public class LifeLogDeployment {
 
   public static JAXRSArchive deployment() {
-    JAXRSArchive deployment = ShrinkWrap.create(JAXRSArchive.class);
+    JAXRSArchive archive = ShrinkWrap.create(JAXRSArchive.class);
 
-    deployment.addPackages(true, App.class.getPackage());
-    deployment.addAsWebInfResource(
+    archive.addPackages(true, App.class.getPackage());
+    archive.addAsWebInfResource(
       new ClassLoaderAsset("META-INF/persistence.xml", App.class.getClassLoader()), "classes/META-INF/persistence.xml");
 
-    deployment.as(Secured.class)
+    archive.as(Secured.class)
       .protect("/entries/*")
       .withMethod("POST", "PUT", "DELETE")
       .withRole("author");
-    replaceKeycloakJson(deployment);
+    replaceKeycloakJson(archive);
 
-    return deployment;
+    return archive;
   }
 
   private static void replaceKeycloakJson(Archive deployment) {
