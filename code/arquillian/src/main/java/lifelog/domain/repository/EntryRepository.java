@@ -5,11 +5,9 @@ import lifelog.domain.model.Entry;
 import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
 import java.util.List;
 
 @ApplicationScoped
-@Transactional
 public class EntryRepository {
 
   @PersistenceContext
