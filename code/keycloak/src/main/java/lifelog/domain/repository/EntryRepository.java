@@ -20,7 +20,7 @@ public class EntryRepository {
    */
   public List<Entry> findAll() {
     return em
-      .createQuery("SELECT e FROM Entry e ORDER BY  e.createdAt DESC", Entry.class)
+      .createQuery("SELECT e FROM Entry e ORDER BY e.createdAt DESC", Entry.class)
       .getResultList();
   }
 
@@ -39,7 +39,7 @@ public class EntryRepository {
     if (entry.getId() == null) {
       em.persist(entry);
       return entry;
-      // id がある場合は既存エントリの更新なので、そのままマージ
+    // id がある場合は既存エントリの更新なので、そのままマージ
     } else {
       return em.merge(entry);
     }

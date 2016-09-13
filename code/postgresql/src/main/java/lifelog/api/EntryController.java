@@ -34,8 +34,8 @@ public class EntryController {
   public List<EntryResponse> findALL() {
     List<Entry> allEntries = entryService.findAll();
     return allEntries.stream()
-        .map(EntryResponse::from)
-        .collect(Collectors.toList());
+      .map(EntryResponse::from)
+      .collect(Collectors.toList());
   }
 
   /**
@@ -65,11 +65,11 @@ public class EntryController {
     Entry created = entryService.save(entry);
 
     return Response
-        .created(
-            uriInfo.getAbsolutePathBuilder()
-                .path(String.valueOf(created.getId()))
-                .build())
-        .build();
+      .created(
+        uriInfo.getAbsolutePathBuilder()
+          .path(String.valueOf(created.getId()))
+          .build())
+      .build();
   }
 
   /**
@@ -93,7 +93,7 @@ public class EntryController {
   }
 
   /**
-   *  DELETE /entries
+   * DELETE /entries
    * 全件削除
    */
   @DELETE

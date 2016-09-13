@@ -10,7 +10,6 @@ import org.wildfly.swarm.keycloak.Secured;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public class LifeLogDeployment {
@@ -39,9 +38,9 @@ public class LifeLogDeployment {
       return;
     }
 
-    InputStream is = keycloakJson.getAsset().openStream();
     StringBuilder sb = new StringBuilder();
-    try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
+    try (BufferedReader reader =
+           new BufferedReader(new InputStreamReader(keycloakJson.getAsset().openStream()))) {
       reader.lines().forEach(line -> {
         line = line.replace("change_me", System.getProperty("swarm.auth.server.url", "http://localhost:18080/auth"));
         sb.append(line).append("\n");

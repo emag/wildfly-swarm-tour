@@ -12,8 +12,8 @@ public class LifeLogContainer {
     LifeLogConfiguration configuration = new LifeLogConfiguration(swarm);
 
     swarm
-        .fraction(configuration.datasourcesFraction(DATASOURCE_NAME))
-        .fraction(configuration.jpaFraction(DATASOURCE_NAME));
+      .fraction(configuration.datasourcesFraction(DATASOURCE_NAME))
+      .fraction(configuration.jpaFraction(DATASOURCE_NAME));
 
     return swarm;
   }

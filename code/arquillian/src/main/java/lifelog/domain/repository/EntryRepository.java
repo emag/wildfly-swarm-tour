@@ -20,8 +20,8 @@ public class EntryRepository {
    */
   public List<Entry> findAll() {
     return em
-        .createQuery("SELECT e FROM Entry e ORDER BY  e.createdAt DESC", Entry.class)
-        .getResultList();
+      .createQuery("SELECT e FROM Entry e ORDER BY e.createdAt DESC", Entry.class)
+      .getResultList();
   }
 
   /**
