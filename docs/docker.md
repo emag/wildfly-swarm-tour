@@ -136,6 +136,10 @@ DB_PORT_5432_TCP_PORT=5432
 
 というわけで、環境変数が与えられた場合はそちらを利用するように PostgreSQL と Keycloak Server の URL の設定部分を変更します。
 
+完成版は以下リポジトリにありますので、適宜参照ください。
+
+https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/docker
+
 PostgreSQL の URL は lifelog.LifeLogConfiguration で設定しているので、こちらを以下のように変更します。
 
 ``` java
