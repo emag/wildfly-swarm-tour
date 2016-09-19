@@ -330,8 +330,8 @@ archive.addAsWebInfResource(
 └── src
     └── main
         ├── java
-        │   │   └── HelloWorld.java
         │   ├── helloworld
+        │   │   └── HelloWorld.java
         │   └── wildflyswarm
         │       └── Bootstrap.java
         └── resources

@@ -24,7 +24,7 @@ Maven は最新のものを、少なくとも 3.2.5 以上の利用を推奨し�
 
 Gradle でやりたいぜ、という方は以下ドキュメントやサンプルを参考ください。ただし、現状あまり Gradle についてはサポートされていないようです。。
 
-* https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.version.swarm}}/getting-started/tooling/gradle-plugin.html
+* https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.versions.swarm}}/getting-started/tooling/gradle-plugin.html
 * https://github.com/wildfly-swarm/wildfly-swarm-examples/tree/{{book.versions.swarm}}/gradle
 
 
