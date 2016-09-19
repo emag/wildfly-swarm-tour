@@ -21,53 +21,52 @@ https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.ver
 
 まず pom.xml に Arquillian を利用する設定を追加します。
 
-``` xml
-<properties>
+<pre><code class="lang-xml">&lt;properties&gt;
   [...]
-  <version.arquillian>1.1.10.Final</version.arquillian>
-  <version.resteasy>3.0.14.Final</version.resteasy>
+  &lt;version.arquillian&gt;{{book.versions.arquillian}}&lt;/version.arquillian&gt;
+  &lt;version.resteasy&gt;{{book.versions.resteasy}}&lt;/version.resteasy&gt;
 
-  <version.maven-failsafe-plugin>2.19.1</version.maven-failsafe-plugin>
-</properties>
+  &lt;version.maven-failsafe-plugin&gt;{{book.versions.maven_failsafe_plugin}}&lt;/version.maven-failsafe-plugin&gt;
+&lt;/properties&gt;
 
 [...]
 
-<dependencyManagement>
-  <dependencies>
-    <dependency>
-      <groupId>org.wildfly.swarm</groupId>
-      <artifactId>bom-all</artifactId>
-      <version>${version.wildfly-swarm}</version>
-      <type>pom</type>
-      <scope>import</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jboss.arquillian</groupId>
-      <artifactId>arquillian-bom</artifactId>
-      <version>${version.arquillian}</version>
-      <type>pom</type>
-      <scope>import</scope>
-    </dependency>
-  </dependencies>
-</dependencyManagement>
+&lt;dependencyManagement&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.wildfly.swarm&lt;/groupId&gt;
+      &lt;artifactId&gt;bom-all&lt;/artifactId&gt;
+      &lt;version&gt;${version.wildfly-swarm}&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.jboss.arquillian&lt;/groupId&gt;
+      &lt;artifactId&gt;arquillian-bom&lt;/artifactId&gt;
+      &lt;version&gt;${version.arquillian}&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
 
 [...]
 
-<dependencies>
+&lt;dependencies&gt;
   [...]
-  <dependency>
-    <groupId>org.wildfly.swarm</groupId>
-    <artifactId>arquillian</artifactId>
-    <scope>test</scope>
-  </dependency>
-  <dependency>
-    <groupId>org.jboss.arquillian.junit</groupId>
-    <artifactId>arquillian-junit-container</artifactId>
-    <scope>test</scope>
-  </dependency>
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.wildfly.swarm&lt;/groupId&gt;
+    &lt;artifactId&gt;arquillian&lt;/artifactId&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
+  &lt;/dependency&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.jboss.arquillian.junit&lt;/groupId&gt;
+    &lt;artifactId&gt;arquillian-junit-container&lt;/artifactId&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
+  &lt;/dependency&gt;
   [...]
-</dependencies>
-```
+&lt;/dependencies&gt;
+</code></pre>
 
 また、今回作るテストは起動した WildFly の内部でなく外からテスト(@RunAsClient)するため、HTTP クライアントの依存性を別途追加しておきます。
 

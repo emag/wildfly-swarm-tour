@@ -41,8 +41,7 @@ $ rm -fr src/main/java/wildflyswarm/App.java src/test/*
     &lt;maven.compiler.target&gt;1.8&lt;/maven.compiler.target&gt;
 
     &lt;version.wildfly-swarm&gt;${project.version}&lt;/version.wildfly-swarm&gt;
-
-    &lt;version.lombok&gt;1.16.8&lt;/version.lombok&gt;
+    &lt;version.lombok&gt;{{book.versions.lombok}}&lt;/version.lombok&gt;
   &lt;/properties&gt;
 
   &lt;dependencyManagement&gt;

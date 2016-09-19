@@ -65,21 +65,20 @@ PostgreSQL がセットアップできたらアプリケーションから使え
 
 まず、利用する PostgreSQL JDBC ドライバの依存性を追加します。
 
-``` xml
-<properties>
+<pre><code class="lang-xml">&lt;properties&gt;
   [...]
-  <version.postgresql-jdbc>9.4.1209</version.postgresql-jdbc>
+  &lt;version.postgresql-jdbc&gt;{{book.versions.postgresql_jdbc}}&lt;/version.postgresql-jdbc&gt;
   [...]
-</properties>
+&lt;/properties&gt;
 
 [...]
 
-<dependency>
-  <groupId>org.postgresql</groupId>
-  <artifactId>postgresql</artifactId>
-  <version>${version.postgresql-jdbc}</version>
-</dependency>
-```
+&lt;dependency&gt;
+  &lt;groupId&gt;org.postgresql&lt;/groupId&gt;
+  &lt;artifactId&gt;postgresql&lt;/artifactId&gt;
+  &lt;version&gt;${version.postgresql-jdbc}&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
 
 次に、後述する PostgreSQL JDBC ドライバ用の module.xml で `${version.postgresql-jdbc}` の値が上書きされるようにリソース処理を設定しています。
 
@@ -355,7 +354,7 @@ https://github.com/fabric8io/docker-maven-plugin
 
 <pre><code class="lang-xml">&lt;properties&gt;
   [...]
-  &lt;version.docker-maven-plugin&gt;0.15.3&lt;/version.docker-maven-plugin&gt;
+  &lt;version.docker-maven-plugin&gt;{{book.versions.docker_maven_plugin}}&lt;/version.docker-maven-plugin&gt;
   &lt;version.postgresql-server&gt;{{book.versions.postgresql}}&lt;/version.postgresql-server&gt;
 &lt;/properties&gt;
 
