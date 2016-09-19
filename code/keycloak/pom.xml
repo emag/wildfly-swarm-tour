@@ -22,8 +22,8 @@
 
     <version.maven-failsafe-plugin>2.19.1</version.maven-failsafe-plugin>
     <version.docker-maven-plugin>0.15.3</version.docker-maven-plugin>
-    <version.postgresql-server>9.5.3</version.postgresql-server>
-    <version.keycloak-server>1.9.8.Final</version.keycloak-server>
+    <version.postgresql-server>9.5.4</version.postgresql-server>
+    <version.keycloak-server>2.1.0.Final</version.keycloak-server>
   </properties>
 
   <dependencyManagement>

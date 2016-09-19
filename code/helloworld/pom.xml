@@ -6,6 +6,7 @@
   <groupId>wildflyswarmtour</groupId>
   <artifactId>helloworld</artifactId>
   <version>2016.9</version>
+  <!-- (1) jar としてパッケージング -->
   <packaging>jar</packaging>
 
   <properties>
@@ -20,6 +21,7 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- (2) bom-all を指定する -->
       <dependency>
         <groupId>org.wildfly.swarm</groupId>
         <artifactId>bom-all</artifactId>
@@ -31,6 +33,7 @@
   </dependencyManagement>
 
   <dependencies>
+    <!-- (3) JAX-RS を使う -->
     <dependency>
       <groupId>org.wildfly.swarm</groupId>
       <artifactId>jaxrs</artifactId>
@@ -41,16 +44,19 @@
     <finalName>${project.artifactId}</finalName>
 
     <plugins>
+      <!-- (4) 実行可能 jar(uber jar)を作成するためのプラグイン -->
       <plugin>
         <groupId>org.wildfly.swarm</groupId>
         <artifactId>wildfly-swarm-plugin</artifactId>
         <version>${version.wildfly-swarm}</version>
         <configuration>
+          <!-- (5) main() を持つクラスを指定 -->
           <mainClass>wildflyswarm.Bootstrap</mainClass>
         </configuration>
         <executions>
           <execution>
             <goals>
+              <!-- (6)  package ゴールで動くようにする -->
               <goal>package</goal>
             </goals>
           </execution>

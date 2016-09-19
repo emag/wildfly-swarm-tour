@@ -17,7 +17,10 @@ public class EntryResponse implements Serializable {
   private String description;
 
   public static EntryResponse from(Entry entry) {
-    return new EntryResponse(entry.getId(), entry.getCreatedAt().toString(), entry.getDescription());
+    return new EntryResponse(
+      entry.getId(),
+      entry.getCreatedAt().toString(),
+      entry.getDescription());
   }
 
 }

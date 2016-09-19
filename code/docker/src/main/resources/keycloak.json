@@ -1,6 +1,6 @@
 {
   "realm": "lifelog",
-  "realm-public-key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmJCb/rB3NC6SNFTzZOj4dP2c/KF3cDVBHVppM3UVsm177DcKyrZKxmpGjPCPjeDeFbMr4e0YhpPHnfxMYUeux7b7u8q9sPvziBFg4g3Ldx7Lw/vlCYOqYGc6wZd9HfuOF/7n3p7OBEm7pAlOrylwmrKhoFgBWFc7Bx+VscT382Oloise9lCcWbBpHcclBiAhHwi9OkEj92/UxfmDA53zNicFgmBuDPW63y0ACNTT0/+Ia7T92CXgSMsKi4YzFE8ERi6yhMQG+zwrEH+z4a+eEgcaEIOoXf6AkdioDzB9ck/ItX5AcBBDJIRd8VL3qYe1vve+TDjt6REjBwb6sFkjzwIDAQAB",
+  "realm-public-key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwjjEd/r7wzg599XzAEyGS0gxNMe8lhisLYLRcyTxPB35AMIbVjGQUrhdjT6xmHegaQ47+Eb72f5phGFOBpmSh1Ce4xnBy1jGXQC1xBJy8lm67ivbp631xKLJRdacL96igR/v12DCy2K3kQ+GEcsxr9/JFBrRlsJxp01eZ6iBk3/0W9m/LzlSjYY7aFXrRtPTROgavGCHMNdfAhRLb7+uIMo2XyK5cg63KL9bVcWPu4aCgvnE+9BF7hc3kwaEYmw3QI9CW/Zg1AVOvai9THNVTSAKZxZckzSwYxHQtT9kTZdKW67mih5tbpe/dF+OAZtet5VI9tUpj4rSRhKVFw3YuwIDAQAB",
   "bearer-only": true,
   "auth-server-url": "change_me",
   "ssl-required": "external",

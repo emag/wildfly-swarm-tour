@@ -9,13 +9,15 @@ lifelog:
     - lifelog-auth:auth
   ports:
     - 8080:8080
+
 lifelog-db:
-  image: postgres:9.5.3
+  image: postgres:9.5.4
   environment:
     POSTGRES_USER: lifelog
     POSTGRES_PASSWORD: lifelog
+
 lifelog-auth:
-  image: jboss/keycloak:1.9.8.Final
+  image: jboss/keycloak:2.1.0.Final
   volumes:
     - .:/tmp/project
   command: -b 0.0.0.0 -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/tmp/project/lifelog.json

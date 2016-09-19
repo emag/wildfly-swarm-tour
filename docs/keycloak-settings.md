@@ -46,7 +46,7 @@ Keycloak では Realm という単位で認証に対応するアプリケーシ�
 
 ![](images/keycloak-settings/add-realm-1.png)
 
-Name に lifelog と入力し、Create をクリックします。
+Name に `lifelog` と入力し、Create をクリックします。
 
 ![](images/keycloak-settings/add-realm-2.png)
 
@@ -62,7 +62,7 @@ lifelog Realm を利用するアプリケーション、つまり Keycloak Serve
 
 ![](images/keycloak-settings/add-client-lifelog-1.png)
 
-Client ID に lifelog と入力し、Save をクリックします。
+Client ID に `lifelog` と入力し、Save をクリックします。
 
 ![](images/keycloak-settings/add-client-lifelog-2.png)
 
@@ -84,7 +84,7 @@ lifelog は bearer-only であるため、トークンを取得するなんら�
 
 ![](images/keycloak-settings/add-client-curl-1.png)
 
-Valid Redirect URIs に http://localhost と入力し、Save をクリックします。
+Valid Redirect URIs に `http://localhost` と入力し、Save をクリックします。
 
 ![](images/keycloak-settings/add-client-curl-2.png)
 
@@ -94,21 +94,29 @@ Valid Redirect URIs に http://localhost と入力し、Save をクリックし�
 
 ![](images/keycloak-settings/add-role-1.png)
 
-Role Name に author と入力し、Save をクリックします。
+Role Name に `author` と入力し、Save をクリックします。
 
 ![](images/keycloak-settings/add-role-2.png)
 
 ## User の設定
 
-author ロールを持つ User を作成します。左のメニューから Users をクリックし、右の Add user をクリックします。
+`author` ロールを持つ User を作成します。左のメニューから Users をクリックし、右の Add user をクリックします。
 
 ![](images/keycloak-settings/add-user-1.png)
 
-Username に user1 と入力し、Save をクリックします。
+Username に `user1` と入力し、Save をクリックします。
 
 ![](images/keycloak-settings/add-user-2.png)
 
-次に、user1 に author ロールを設定します。Role Mappings をクリックします。
+次に、パスワード変更のため、Credentials をクリックします。
+
+New Password と Password Confirmation それぞれに `password1` と入力後、Reset Password をクリックします。その後表示されるダイアログも Change Password をクリックします。なお、Temporary は OFF にしておいてください。
+
+> Temporary が ON の場合、初回ログイン時にパスワードをリセットする必要があります。
+
+![](images/keycloak-settings/change-user-password.png)
+
+次に、`user1` に `author` ロールを設定するため、Role Mappings をクリックします。
 
 ![](images/keycloak-settings/add-user-3.png)
 
@@ -140,7 +148,7 @@ $ /opt/jboss/keycloak/bin/standalone.sh -Djboss.socket.binding.port-offset=100 \
 
 > 設定ファイルのエクスポートに Keyclaok Server の起動が必要なので、上記のようになっています。
 
-`WFLYSRV0025: Keycloak ...` と表示されたら Ctrl - C で Keycloak Server を停止します。ここまでできたら Ctrl-D で bash からログアウトします。
+`WFLYSRV0025: Keycloak ...` と表示されたら Ctrl - C で Keycloak Server を停止します。ここまでできたら Ctrl-D でコンテナから抜けます。
 
 コンテナの /tmp 以下に `my-lifelog.json` というファイルができていますので、ホストから取得します(/path/to は適当に読み替え)。
 
