@@ -16,9 +16,12 @@ OS はなんでもよいですが、筆者は Linux(Fedora) で動作確認し�
 
 ## Maven
 
-Maven は最新のものを、少なくとも 3.2.5 以上の利用を推奨します。また、IDE 経由でビルドする場合、バンドルする Maven のバージョンが低いと以下の問題が発生します。
+Maven は最新のものを、少なくとも 3.2.5 以上の利用を推奨します。また、IDE 経由でビルドする場合、デフォルトで利用されるバンドルされた Maven のバージョンが古いことがあるのでご注意ください。
 
-[error packaging project: java.lang.NoClassDefFoundError: org/eclipse/aether/RepositorySystemSession](https://issues.jboss.org/browse/SWARM-24)
+> Maven のバージョンが低いと以下の問題が発生します。
+>
+> [error packaging project: java.lang.NoClassDefFoundError: org/eclipse/aether/RepositorySystemSession](https://issues.jboss.org/browse/SWARM-24)
+
 
 ## Gradle
 
@@ -26,7 +29,6 @@ Gradle でやりたいぜ、という方は以下ドキュメントやサンプ�
 
 * https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.versions.swarm}}/getting-started/tooling/gradle-plugin.html
 * https://github.com/wildfly-swarm/wildfly-swarm-examples/tree/{{book.versions.swarm}}/gradle
-
 
 ## Docker
 
