@@ -41,7 +41,7 @@ ENTRYPOINT ["java", "-jar", "/opt/lifelog-swarm.jar"]
 上記の Dockerfile の通り、ビルドした lifelog-swarm.jar が必要ですので、先に lifelog をビルドしておきます。
 
 ``` sh
-$ mvnw clean package
+$ mvn clean package
 ```
 
 `docker build` で lifelog の Docker イメージを作成します。
