@@ -26,11 +26,11 @@ Keycloak を利用した場合の大ざっぱな仕組みとしては以下の�
 
 Keycloak サーバは実体としては Java EE の Web アプリケーションで、WildFly にデプロイして利用します。なので、既存の WildFly にデプロイしたり、コミュニティから提供されている WildFly 込のものを用いて起動可能です。また [Docker イメージ](https://hub.docker.com/r/jboss/keycloak/)も存在します。また、以下のように WildFly Swarm では Keycloak Server 用 Fraction を用意していますので、lifelog と同様に uber jar を簡単に作成することもできます。
 
-https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/security/keycloak_server.html
+https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.versions.swarm}}/security/keycloak_server.html
 
 > Maven リポジトリからダウンロードしてすぐ使えるものもあります。
 >
-> https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/servers.html#_keycloak_server
+> https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.versions.swarm}}/server/keycloak.html
 
 今回は Docker イメージを利用していきたいと思います。さっそくお呼びいたしましょう。
 
