@@ -52,8 +52,7 @@ Keycloak が起動できたら、lifelog の方で認証・認可処理を追加
 
 完成版は以下リポジトリにありますので、適宜参照ください。
 
-<pre><code class="lang-sh">$ https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/keycloak
-</code></pre>
+https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/keycloak
 
 まず、pom.xml に以下を追加します。
 

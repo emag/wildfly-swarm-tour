@@ -4,8 +4,7 @@
 
 完成版は以下リポジトリにありますので、適宜参照ください。
 
-<pre><code class="lang-sh">$ https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/lifelog
-</code></pre>
+https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/lifelog
 
 まずは適当なディレクトリに移動し、以下コマンドを実行して Maven プロジェクトを作成します。
 

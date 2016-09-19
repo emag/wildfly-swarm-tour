@@ -60,8 +60,7 @@ PostgreSQL がセットアップできたらアプリケーションから使え
 
 完成版は以下リポジトリにありますので、適宜参照ください。
 
-<pre><code class="lang-sh">$ https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/postgresql
-</code></pre>
+https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/postgresql
 
 まず、利用する PostgreSQL JDBC ドライバの依存性を追加します。
 

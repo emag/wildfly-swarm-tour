@@ -16,8 +16,7 @@ https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.ver
 
 完成版は以下リポジトリにありますので、適宜参照ください。
 
-<pre><code class="lang-sh">$ https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/arquillian
-</code></pre>
+https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/arquillian
 
 まず pom.xml に Arquillian を利用する設定を追加します。
 
