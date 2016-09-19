@@ -1,43 +1,106 @@
 # CRUD アプリの作成
 
-ようやく CRUD アプリを作っていきます。簡単な一言メモみたいなアプリで、`lifelog` という名前をつけました(安直...)。`lifelog/initial` にどんどん書いてきましょう。
+ようやく CRUD アプリを作っていきます。簡単な一言メモみたいなアプリで、`lifelog` という名前をつけました(安直...)。
+
+完成版は以下リポジトリにありますので、適宜参照ください。
+
+https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/lifelog
+
+まずは適当なディレクトリに移動し、以下コマンドを実行して Maven プロジェクトを作成します。
+
+``` sh
+$ mvn archetype:generate -DgroupId=wildflyswarm -DartifactId=lifelog -DinteractiveMode=false
+```
+
+また、テンプレートとして作成される不要なファイルを削除しておきます。
+
+``` sh
+$ cd lifelog
+$ rm -fr src/main/java/wildflyswarm/App.java src/test/*
+```
+
+次に、以下のように pom.xml を書き換えます。
 
 ## pom.xml
 
-まずは pom.xml を見てみます。
+<pre><code class="lang-xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
 
-``` xml
-<?xml version="1.0" encoding="UTF-8"?>
-<project ...>
+  &lt;groupId&gt;wildflyswarmtour&lt;/groupId&gt;
+  &lt;artifactId&gt;lifelog&lt;/artifactId&gt;
+  &lt;version&gt;{{book.versions.swarm}}&lt;/version&gt;
 
-  [...]
+  &lt;properties&gt;
+    &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+    &lt;project.reporting.outputEncoding&gt;UTF-8&lt;/project.reporting.outputEncoding&gt;
 
-  <!-- (1) -->
-  <dependencies>
-    <dependency>
-      <groupId>org.wildfly.swarm</groupId>
-      <artifactId>jaxrs-cdi</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.wildfly.swarm</groupId>
-      <artifactId>jpa</artifactId>
-    </dependency>
+    &lt;maven.compiler.source&gt;1.8&lt;/maven.compiler.source&gt;
+    &lt;maven.compiler.target&gt;1.8&lt;/maven.compiler.target&gt;
 
-    <!-- (2) -->
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <version>${version.lombok}</version>
-      <scope>provided</scope>
-    </dependency>
-  </dependencies>
+    &lt;version.wildfly-swarm&gt;${project.version}&lt;/version.wildfly-swarm&gt;
+    &lt;version.lombok&gt;{{book.versions.lombok}}&lt;/version.lombok&gt;
+  &lt;/properties&gt;
 
-  [...]
+  &lt;dependencyManagement&gt;
+    &lt;dependencies&gt;
+      &lt;dependency&gt;
+        &lt;groupId&gt;org.wildfly.swarm&lt;/groupId&gt;
+        &lt;artifactId&gt;bom-all&lt;/artifactId&gt;
+        &lt;version&gt;${version.wildfly-swarm}&lt;/version&gt;
+        &lt;type&gt;pom&lt;/type&gt;
+        &lt;scope&gt;import&lt;/scope&gt;
+      &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+  &lt;/dependencyManagement&gt;
 
-</project>
-```
+  &lt;dependencies&gt;
+    &lt;!-- (1) --&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.wildfly.swarm&lt;/groupId&gt;
+      &lt;artifactId&gt;jaxrs-cdi&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.wildfly.swarm&lt;/groupId&gt;
+      &lt;artifactId&gt;jpa&lt;/artifactId&gt;
+    &lt;/dependency&gt;
 
-今回は JAX-RS と CDI、JPA を使えるようにしておきます(1)。また、サードパーティのライブラリを利用します(2)。なお、lombok 自体はコンパイル時のみにしか利用しないため(provided スコープ)、実際にアーカイブに含めないのであまり影響ありませんが、ランタイム時にも必要なライブラリがある場合は、後述する `deployment.addAllDependencies()` を App クラスで設定します。
+    &lt;!-- (2) --&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+      &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+      &lt;version&gt;${version.lombok}&lt;/version&gt;
+      &lt;scope&gt;provided&lt;/scope&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+
+  &lt;build&gt;
+    &lt;finalName&gt;${project.artifactId}&lt;/finalName&gt;
+
+    &lt;plugins&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.wildfly.swarm&lt;/groupId&gt;
+        &lt;artifactId&gt;wildfly-swarm-plugin&lt;/artifactId&gt;
+        &lt;version&gt;${version.wildfly-swarm}&lt;/version&gt;
+        &lt;configuration&gt;
+          &lt;mainClass&gt;wildflyswarm.Bootstrap&lt;/mainClass&gt;
+        &lt;/configuration&gt;
+        &lt;executions&gt;
+          &lt;execution&gt;
+            &lt;goals&gt;
+              &lt;goal&gt;package&lt;/goal&gt;
+            &lt;/goals&gt;
+          &lt;/execution&gt;
+        &lt;/executions&gt;
+      &lt;/plugin&gt;
+    &lt;/plugins&gt;
+  &lt;/build&gt;
+
+&lt;/project&gt;
+<code></pre>
+
+今回は JAX-RS と CDI、JPA を使えるようにしておきます(1)。また、サードパーティのライブラリを利用します(2)。なお、lombok 自体はコンパイル時のみにしか利用しないため(provided スコープ)、実際にアーカイブに含めないのであまり影響ありませんが、ランタイム時にも必要なライブラリがある場合は、後述する `Archive#addAllDependencies()` を App クラスで設定します。
 
 では次からいろいろと作ってみましょう。
 
@@ -69,6 +132,8 @@
 ## Entity
 
 次に JPA の Entity クラス(データベースのテーブルとマッピングされるクラス)を作成します。
+
+クラス名は `lifelog.domain.model.Entry` です。
 
 ``` java
 package lifelog.domain.model;
@@ -118,7 +183,7 @@ public class Entry implements Serializable {
 
 [Using JPA 2.1 AttributeConverter against Java8 LocalDate / LocalDateTime](http://www.nailedtothex.org/roller/kyle/entry/using-jpa-2-1-attributeconverter)
 
-Java EE 7 の JPA 2.1 ではフィールドに Date and Time API はそのままでは使えないので、以下のようなコンバータを用意してあげる必要があります。
+Java EE 7 の JPA 2.1 ではフィールドに Date and Time API はそのままでは使えないので、以下の `lifelog.domain.model.converter.LocalDateTimeConverter` のようなコンバータを用意してあげる必要があります。
 
 ``` java
 package lifelog.domain.model.converter;
@@ -156,7 +221,9 @@ public class LocalDateTimeConverter implements AttributeConverter<LocalDateTime,
 
 ## Repository
 
-実際にデータベースとやり取りする Repository クラスは以下のようにします。JPA における各操作のインターフェースである `javax.persistence.EntityManager` をインジェクションし、ここから各種 CRUD 操作を行います。また、クラスレベルで `javax.transaction.Transactional` を設定しているため、すべてのメソッドにおいてトランザクションが走ります。
+実際にデータベースとやり取りする Repository クラスとして `lifelog.domain.repository.EntryRepository` を以下のように作成します。
+
+JPA における各操作のインターフェースである `javax.persistence.EntityManager` をインジェクションし、ここから各種 CRUD 操作を行います。
 
 ``` java
 package lifelog.domain.repository;
@@ -166,11 +233,9 @@ import lifelog.domain.model.Entry;
 import javax.enterprise.context.ApplicationScoped;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.transaction.Transactional;
 import java.util.List;
 
 @ApplicationScoped
-@Transactional
 public class EntryRepository {
 
   @PersistenceContext
@@ -181,8 +246,8 @@ public class EntryRepository {
    */
   public List<Entry> findAll() {
     return em
-        .createQuery("SELECT e FROM Entry e ORDER BY  e.createdAt DESC", Entry.class)
-        .getResultList();
+      .createQuery("SELECT e FROM Entry e ORDER BY e.createdAt DESC", Entry.class)
+      .getResultList();
   }
 
   /**
@@ -234,6 +299,8 @@ public class EntryRepository {
 
 JAX-RS などのプレゼンテーション層から呼ばれることを想定した Service クラスです。実際の処理は先ほど作った EntryRepository に委譲しています。
 
+また、クラスレベルで `javax.transaction.Transactional` を設定しているため、すべてのメソッドにおいてトランザクションが走ります。
+
 ``` java
 package lifelog.domain.service;
 
@@ -277,7 +344,7 @@ public class EntryService {
 
 ## Resource
 
-JAX-RS のリソースクラスです。JSON でリクエストを受け付け(javax.ws.rs.Consumes)、レスポンス(javax.ws.rs.Produces)をしています。また、CRUD 操作の実体は EntryService クラスに処理を委譲しています。
+JAX-RS のリソースクラスとして `lifelog.api.EntryController` として作成します。JSON でリクエストを受け付け(javax.ws.rs.Consumes)、レスポンス(javax.ws.rs.Produces)を行います。また、CRUD 操作の実体は EntryService クラスに処理を委譲しています。
 
 ``` java
 package lifelog.api;
@@ -316,8 +383,8 @@ public class EntryController {
   public List<EntryResponse> findALL() {
     List<Entry> allEntries = entryService.findAll();
     return allEntries.stream()
-        .map(EntryResponse::from)
-        .collect(Collectors.toList());
+      .map(EntryResponse::from)
+      .collect(Collectors.toList());
   }
 
   /**
@@ -347,11 +414,11 @@ public class EntryController {
     Entry created = entryService.save(entry);
 
     return Response
-        .created(
-            uriInfo.getAbsolutePathBuilder()
-                .path(String.valueOf(created.getId()))
-                .build())
-        .build();
+      .created(
+        uriInfo.getAbsolutePathBuilder()
+          .path(String.valueOf(created.getId()))
+          .build())
+      .build();
   }
 
   /**
@@ -375,7 +442,7 @@ public class EntryController {
   }
 
   /**
-   *  DELETE /entries
+   * DELETE /entries
    * 全件削除
    */
   @DELETE
@@ -425,13 +492,16 @@ public class EntryResponse implements Serializable {
   private String description;
 
   public static EntryResponse from(Entry entry) {
-    return new EntryResponse(entry.getId(), entry.getCreatedAt().toString(), entry.getDescription());
+    return new EntryResponse(
+      entry.getId(),
+      entry.getCreatedAt().toString(),
+      entry.getDescription());
   }
 
 }
 ```
 
-保守性のためビューを分けるという意味もあるのですが、timestamp フィールドを LocalDateTime のまま返すと以下のようなレスポンスになってしまいました。
+保守性のためビューを分けるという意味もあるのですが、createdAt フィールドを LocalDateTime のまま返すと以下のようなレスポンスになってしまいました。
 
 ``` json
 "createdAt": {
@@ -455,115 +525,100 @@ public class EntryResponse implements Serializable {
 これはこれで使い出があるような気もしますが、ここでは単純な形でいいでしょう。LocalDateTime の toString() は `2015-11-23T02:52:17.333` のような ISO 8601 フォーマットになります。
 
 > あとは Jackson の jackson-datetype-jsr310 とかが使えるんですかね。
+>
 > https://github.com/FasterXML/jackson-datatype-jsr310
 
 ## WildFly Swarm 固有クラスによるアプリケーションの設定
 
-ここまではふつうの Java EE アプリケーション開発という感じでした。最後に Hello World の時と同様、WildFly Swarm 固有のクラスとして WildFly の起動からアプリケーションのデプロイまでを表現する App クラスを作成します。
+ここまではふつうの Java EE アプリケーション開発という感じでした。最後に Hello World の時と同様、WildFly Swarm 固有のクラスとして WildFly の起動からアプリケーションのデプロイまでを表現する Bootstrap クラスを作成します。
 
 ``` java
-package lifelog;
+package wildflyswarm;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.ClassLoaderAsset;
-import org.wildfly.swarm.container.Container;
+import org.wildfly.swarm.Swarm;
 import org.wildfly.swarm.datasources.DatasourcesFraction;
 import org.wildfly.swarm.jaxrs.JAXRSArchive;
 import org.wildfly.swarm.jpa.JPAFraction;
 
-public class App {
+public class Bootstrap {
 
   public static void main(String[] args) throws Exception {
-    Container container = new Container(args);
+    Swarm swarm = new Swarm(args);
 
     // (1) データソース設定
-    container.fraction(new DatasourcesFraction()
-        // (1-1) JDBC ドライバの登録 ここでは WildFly に同梱されている H2 データベースのものを利用
-        .jdbcDriver("h2", (d) -> {
-          d.driverClassName("org.h2.Driver");
-          d.xaDatasourceClass("org.h2.jdbcx.JdbcDataSource");
-          d.driverModuleName("com.h2database.h2");
-        })
-        // (1-2) アプリケーションで利用するデータソース(lifelogDS)の設定
-        .dataSource("lifelogDS", (ds) -> {
-          ds.driverName("h2");
-          ds.connectionUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE");
-          ds.userName("sa");
-          ds.password("sa");
-        })
+    swarm.fraction(new DatasourcesFraction()
+      .dataSource("lifelogDS", (ds) -> ds
+        .driverName("h2")
+        .connectionUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
+        .userName("sa")
+        .password("sa"))
     );
 
-    // (2) Default の Datasource を lifelogDS に設定。これを設定しない場合は ExampleDS というデータソース設定が作られる。
-    container.fraction(new JPAFraction()
-        .inhibitDefaultDatasource()
-        .defaultDatasource("jboss/datasources/lifelogDS")
+    // (2) Default の Datasource を lifelogDS に設定
+    swarm.fraction(new JPAFraction()
+      .defaultDatasource("jboss/datasources/lifelogDS")
     );
 
-    JAXRSArchive deployment = ShrinkWrap.create(JAXRSArchive.class);
-    deployment.addPackages(true, App.class.getPackage());
+    JAXRSArchive archive = ShrinkWrap.create(JAXRSArchive.class);
+    // (3) lifelog パッケージ以下のクラスを再帰的にアーカイブに含める
+    archive.addPackages(true, "lifelog");
+    // (4) persistence.xml をアーカイブに含める
+    archive.addAsWebInfResource(
+      new ClassLoaderAsset("META-INF/persistence.xml", Bootstrap.class.getClassLoader()), "classes/META-INF/persistence.xml");
 
-    // (3) persistence.xml をアーカイブに含める
-    deployment.addAsWebInfResource(
-        new ClassLoaderAsset("META-INF/persistence.xml", App.class.getClassLoader()), "classes/META-INF/persistence.xml");
-
-    container
-        .start()
-        .deploy(deployment);
+    swarm
+      .start()
+      .deploy(archive);
   }
 
 }
 ```
 
-(1) - (3) にデータソースおよび JPA 関係の設定を追加しています。
+(1) - (2) にデータソースおよび JPA 関係の設定を、(3) - (4) ではアプリケーションのアーカイブを作成しています。なおデータベースは H2 を利用します。このデータベースは `org.wildfly.swarm:jpa` を依存性に追加しておくと合わせて使えるようになります。
 
 > 先ほど pom.xml の設定を見ていた時にちょろっと話題に出しましたが、コンパイル時だけではなくランタイムにも必要なライブラリで、
-> かつ WildFly の module にも持ってなさそうなものがある場合は、deployment.addAllDependencies() を追加しておくとすべての依存性を追加してくれます。
+> かつ WildFly の module にも持ってなさそうなものがある場合は、Archive#addAllDependencies() を追加しておくとすべての依存性を追加してくれます。
 
-ここでちょっとした機能分割をしておきます。上記の main() メソッドは Container の設定とデプロイするアプリケーションのアーカイブ設定が混ざっていますので、それぞれをわけておきます。別にわけなくてもいいのですが、役割がわかりやすくなるのと、このあと Arquillian を使ってテストするときに再利用できます。
+ここでちょっとした機能分割をしておきます。上記の main() メソッドは WildFly の設定とデプロイするアプリケーションのアーカイブ設定が混ざっていますので、それぞれをわけておきます。別にわけなくてもいいのですが、役割がわかりやすくなるのと、このあと Arquillian を使ってテストするときに再利用できます。
 
-Container の設定は LifeLogContainer#newContainer() というメソッドに切り出しました。
+WildFly の設定は `wildflyswarm.LifeLogContainer#newContainer()` というメソッドに切り出しました。
 
 ``` java
-package lifelog;
+package wildflyswarm;
 
-import org.wildfly.swarm.container.Container;
+import org.wildfly.swarm.Swarm;
 import org.wildfly.swarm.datasources.DatasourcesFraction;
 import org.wildfly.swarm.jpa.JPAFraction;
 
 public class LifeLogContainer {
 
-  public static Container newContainer(String[] args) throws Exception {
-    Container container = new Container(args);
+  public static Swarm newContainer(String[] args) throws Exception {
+    Swarm swarm = new Swarm(args);
 
-    container.fraction(new DatasourcesFraction()
-        .jdbcDriver("h2", (d) -> {
-          d.driverClassName("org.h2.Driver");
-          d.xaDatasourceClass("org.h2.jdbcx.JdbcDataSource");
-          d.driverModuleName("com.h2database.h2");
-        })
-        .dataSource("lifelogDS", (ds) -> {
-          ds.driverName("h2");
-          ds.connectionUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE");
-          ds.userName("sa");
-          ds.password("sa");
-        })
+    swarm.fraction(new DatasourcesFraction()
+      .dataSource("lifelogDS", (ds) -> ds
+        .driverName("h2")
+        .connectionUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
+        .userName("sa")
+        .password("sa"))
     );
 
-    container.fraction(new JPAFraction()
-        .inhibitDefaultDatasource()
-        .defaultDatasource("jboss/datasources/lifelogDS")
+    swarm.fraction(new JPAFraction()
+      .defaultDatasource("jboss/datasources/lifelogDS")
     );
 
-    return container;
+    return swarm;
   }
 
 }
 ```
 
-デプロイ関係は `LifeLogDeployment#deployment()` としています。
+デプロイ関係は `wildflyswarm.LifeLogDeployment#deployment()` としています。
 
 ``` java
-package lifelog;
+package wildflyswarm;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.ClassLoaderAsset;
@@ -572,29 +627,29 @@ import org.wildfly.swarm.jaxrs.JAXRSArchive;
 public class LifeLogDeployment {
 
   public static JAXRSArchive deployment() {
-    JAXRSArchive deployment = ShrinkWrap.create(JAXRSArchive.class);
+    JAXRSArchive archive = ShrinkWrap.create(JAXRSArchive.class);
 
-    deployment.addPackages(true, App.class.getPackage());
-    deployment.addAsWebInfResource(
-        new ClassLoaderAsset("META-INF/persistence.xml", App.class.getClassLoader()), "classes/META-INF/persistence.xml");
+    archive.addPackages(true, "lifelog");
+    archive.addAsWebInfResource(
+      new ClassLoaderAsset("META-INF/persistence.xml", Bootstrap.class.getClassLoader()), "classes/META-INF/persistence.xml");
 
-    return deployment;
+    return archive;
   }
 
 }
 ```
 
-今作った 2 つのクラスを使うと、App は以下のようになります。
+今作った 2 つのクラスを使うと、Bootstrap は以下のようになります。
 
 ``` java
-package lifelog;
+package wildflyswarm;
 
-public class App {
+public class Bootstrap {
 
   public static void main(String[] args) throws Exception {
     LifeLogContainer.newContainer(args)
-        .start()
-        .deploy(LifeLogDeployment.deployment());
+      .start()
+      .deploy(LifeLogDeployment.deployment());
   }
 
 }
@@ -604,28 +659,27 @@ public class App {
 
 ``` sh
 .
-├── mvnw
-├── mvnw.cmd
 ├── pom.xml
 └── src
     └── main
         ├── java
-        │   └── lifelog
-        │       ├── App.java
+        │   ├── lifelog
+        │   │   ├── api
+        │   │   │   ├── EntryController.java
+        │   │   │   └── EntryResponse.java
+        │   │   └── domain
+        │   │       ├── model
+        │   │       │   ├── converter
+        │   │       │   │   └── LocalDateTimeConverter.java
+        │   │       │   └── Entry.java
+        │   │       ├── repository
+        │   │       │   └── EntryRepository.java
+        │   │       └── service
+        │   │           └── EntryService.java
+        │   └── wildflyswarm
+        │       ├── Bootstrap.java
         │       ├── LifeLogContainer.java
-        │       ├── LifeLogDeployment.java
-        │       ├── api
-        │       │   ├── EntryController.java
-        │       │   └── EntryResponse.java
-        │       └── domain
-        │           ├── model
-        │           │   ├── Entry.java
-        │           │   └── converter
-        │           │       └── LocalDateTimeConverter.java
-        │           ├── repository
-        │           │   └── EntryRepository.java
-        │           └── service
-        │               └── EntryService.java
+        │       └── LifeLogDeployment.java
         └── resources
             └── META-INF
                 └── persistence.xml
@@ -634,7 +688,7 @@ public class App {
 ではビルド及び実行してみます。
 
 ``` sh
-$ ./mvnw clean package && java -jar target/lifelog-swarm.jar
+$ mvn clean package && java -jar target/lifelog-swarm.jar
 ```
 
 とりあえず全件取得。

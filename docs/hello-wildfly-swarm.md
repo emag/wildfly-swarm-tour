@@ -2,79 +2,104 @@
 
 まずは動作確認がてら、Hello World レベルの JAX-RS アプリケーションを作成します。
 
-以下リポジトリを clone して、`code/helloworld/initial` ディレクトリに移動してください。
+完成版は以下リポジトリにありますので、適宜参照ください。
+
+https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/helloworld
+
+まずは適当なディレクトリに移動し、以下コマンドを実行して Maven プロジェクトを作成します。
 
 ``` sh
-$ https://github.com/emag/wildfly-swarm-tour.git
-$ cd code/helloworld/initial
+$ mvn archetype:generate -DgroupId=wildflyswarm -DartifactId=helloworld -DinteractiveMode=false
 ```
 
-まずは pom.xml を見てみます。
+また、テンプレートとして作成される不要なファイルを削除しておきます。
 
-``` xml
-<?xml version="1.0" encoding="UTF-8"?>
-<project ...>
-  <modelVersion>4.0.0</modelVersion>
-
-  [...]
-
-  <!-- (1) jar としてパッケージング -->
-  <packaging>jar</packaging>
-
-  [...]
-
-  <!-- (2) bom を指定する -->
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.wildfly.swarm</groupId>
-        <artifactId>bom</artifactId>
-        <version>${version.wildfly-swarm}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
-  <dependencies>
-    <!-- (3) JAX-RS を使う -->
-    <dependency>
-      <groupId>org.wildfly.swarm</groupId>
-      <artifactId>jaxrs</artifactId>
-    </dependency>
-  </dependencies>
-
-  <build>
-    <finalName>${project.artifactId}</finalName>
-
-    <plugins>
-      <!-- (4) 実行可能 jar(uber jar)を作成するためのプラグイン -->
-      <plugin>
-        <groupId>org.wildfly.swarm</groupId>
-        <artifactId>wildfly-swarm-plugin</artifactId>
-        <version>${version.wildfly-swarm}</version>
-        <configuration>
-          <!-- (5) main() を持つクラスを指定 -->
-          <mainClass>helloworld.App</mainClass>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <!-- (6)  package ゴールで動くようにする -->
-              <goal>package</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-    </plugins>
-  </build>
-
-</project>
+``` sh
+$ cd helloworld
+$ rm -fr src/main/java/wildflyswarm/App.java src/test/*
 ```
 
-ここでは jar でパッケージングするようにしています(1)。
+次に、以下のように pom.xml を書き換えます。
 
-WildFly Swarm には必要なモジュール(Fraction と呼ばれます)だけ選んで使うことができますが、各 Fraction は成熟度がまちまちのためバージョンが統一されていません。そこで、WildFly Swarm では BOM を用意しており(2)、ユーザが各 Fraction のバージョンを意識しないですむようになっています。ユーザは BOM のバージョンを指定するだけでよく、WildFly Swarm のリリースバージョンは通常この BOM のバージョンを指します。
+<pre><code class="lang-xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"&gt;
+  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+
+  &lt;groupId&gt;wildflyswarmtour&lt;/groupId&gt;
+  &lt;artifactId&gt;helloworld&lt;/artifactId&gt;
+  &lt;version&gt;{{book.versions.swarm}}&lt;/version&gt;
+  &lt;!-- (1) jar としてパッケージング --&gt;
+  &lt;packaging&gt;jar&lt;/packaging&gt;
+
+  &lt;properties&gt;
+    &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+    &lt;project.reporting.outputEncoding&gt;UTF-8&lt;/project.reporting.outputEncoding&gt;
+
+    &lt;maven.compiler.source&gt;1.8&lt;/maven.compiler.source&gt;
+    &lt;maven.compiler.target&gt;1.8&lt;/maven.compiler.target&gt;
+
+    &lt;version.wildfly-swarm&gt;${project.version}&lt;/version.wildfly-swarm&gt;
+  &lt;/properties&gt;
+
+  &lt;dependencyManagement&gt;
+    &lt;dependencies&gt;
+      &lt;!-- (2) bom-all を指定する --&gt;
+      &lt;dependency&gt;
+        &lt;groupId&gt;org.wildfly.swarm&lt;/groupId&gt;
+        &lt;artifactId&gt;bom-all&lt;/artifactId&gt;
+        &lt;version&gt;${version.wildfly-swarm}&lt;/version&gt;
+        &lt;type&gt;pom&lt;/type&gt;
+        &lt;scope&gt;import&lt;/scope&gt;
+      &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+  &lt;/dependencyManagement&gt;
+
+  &lt;dependencies&gt;
+    &lt;!-- (3) JAX-RS を使う --&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.wildfly.swarm&lt;/groupId&gt;
+      &lt;artifactId&gt;jaxrs&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+
+  &lt;build&gt;
+    &lt;finalName&gt;${project.artifactId}&lt;/finalName&gt;
+
+    &lt;plugins&gt;
+      &lt;!-- (4) 実行可能 jar(uber jar)を作成するためのプラグイン --&gt;
+      &lt;plugin&gt;
+        &lt;groupId&gt;org.wildfly.swarm&lt;/groupId&gt;
+        &lt;artifactId&gt;wildfly-swarm-plugin&lt;/artifactId&gt;
+        &lt;version&gt;${version.wildfly-swarm}&lt;/version&gt;
+        &lt;configuration&gt;
+          &lt;!-- (5) main() を持つクラスを指定 --&gt;
+          &lt;mainClass&gt;wildflyswarm.Bootstrap&lt;/mainClass&gt;
+        &lt;/configuration&gt;
+        &lt;executions&gt;
+          &lt;execution&gt;
+            &lt;goals&gt;
+              &lt;!-- (6)  package ゴールで動くようにする --&gt;
+              &lt;goal&gt;package&lt;/goal&gt;
+            &lt;/goals&gt;
+          &lt;/execution&gt;
+        &lt;/executions&gt;
+      &lt;/plugin&gt;
+    &lt;/plugins&gt;
+  &lt;/build&gt;
+
+&lt;/project&gt;
+<code></pre>
+
+ここでは jar でパッケージングするようにしています(1)。デプロイするアプリケーションの設定や WildFly 自体の設定(データソースなど)を 1 から行いたい場合に jar パッケージングを選択します。
+
+https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.versions.swarm}}/getting-started/jar-applications.html
+
+WildFly Swarm には必要なモジュール(Fraction と呼ばれます)だけ選んで使うことができ、各 Fraction をバージョン指定することもできます。しかし、上記の (2) のように用意されている bill of materials(BOM)を利用すると Fraction のバージョンを意識しないですむようになるので、こちらの利用を推奨します。
+
+> なお、ここでは bom-all を選択しましたが、その他に bom や bom-experimental などが存在します。各 Fraction には安定度が設定されており、安定度によってどの bom-* に含まれるかが決まっています。安定度の見方については以下を参照してください。
+>
+> http://wildfly-swarm.io/posts/announcing-wildfly-swarm-2016-8-1/#_fraction_stability_indicators
 
 JAX-RS Fraction をここでは利用します(3)。上述の BOM により、version 指定は不要です。
 
@@ -104,58 +129,57 @@ public class HelloWorld {
 
 上記クラスはアノテーションによってリソースパスとして (1) を、リクエストする際のメソッドとして (2) を定義しており、`GET /hello` と HTTP リクエストすると、(4) のhello() メソッドが実行されます。ここでは return に指定されている JSON フォーマットの文字列をレスポンスします。また、(3) によってレスポンスヘッダに `Content-Type: application/json` がつけられます。これらは WildFly Swarm とは関係ない、JAX-RS を利用したふつうのコードです。
 
-次にもろもろの設定をする App クラスを以下のように作ります。これが WildFly Swarm 利用時の固有クラスです。pom.xml で mainClass に指定したクラスですね。
+次にもろもろの設定をする Bootstrap クラスを以下のように作ります。これが WildFly Swarm 利用時の固有クラスです。pom.xml で mainClass に指定したクラスですね。
 
 ``` java
-package helloworld;
+package wildflyswarm;
 
+import helloworld.HelloWorld;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.wildfly.swarm.container.Container;
+import org.wildfly.swarm.Swarm;
 import org.wildfly.swarm.jaxrs.JAXRSArchive;
 
-public class App {
+public class Bootstrap {
 
   public static void main(String[] args) throws Exception {
-    Container container = new Container(args); // (1)
+    Swarm swarm = new Swarm(args); // (1)
 
     // (4) ShrinkWrap の API を使ってデプロイできる形にパッケージング
-    JAXRSArchive deployment = ShrinkWrap.create(JAXRSArchive.class);
-    deployment.addPackages(true, App.class.getPackage()); // (5) helloworld パッケージ以下をすべて突っ込む
+    JAXRSArchive archive = ShrinkWrap.create(JAXRSArchive.class);
+    archive.addClass(HelloWorld.class); // (5)
 
-    container
-      .start()  // (2)
-      .deploy(deployment); // (3)
+    swarm
+      .start() // (2)
+      .deploy(archive); // (3)
   }
 
 }
 ```
 
-`org.wildfly.swarm.container.Container` インスタンス(1)を介して WildFly の設定や起動(2)、アプリケーションのデプロイ(3)を行えます。この Hello World アプリケーションでは特に設定することはないのですが、次章ではデータベースを使うためデータソースの設定をします。
+`org.wildfly.swarm.Swarm` インスタンス(1)を介して WildFly の設定や起動(2)、アプリケーションのデプロイ(3)を行えます。この Hello World アプリケーションでは特に設定することはないのですが、次章ではデータベースを使うためデータソースの設定をします。
 
-(4) がデプロイするアプリケーションの設定です。これは ShrinkWrap というオンデマンドでアプリケーションを jar や war といった形にアーカイブするライブラリを利用しています。ここでは愚直にすべてアーカイブに突っ込んでいますが(5)、システムプロパティなどを用いれば起動時に何を追加するかコントロールできますね。
+(4) がデプロイするアプリケーションの設定です。これは ShrinkWrap という指定したクラスやリソースファイルを jar や war といった形にオンデマンドでアーカイブするライブラリを利用しています。ここでは先ほど作成した JAX-RS の HelloWorld クラスを追加しています(5)。
 
-* https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/getting-started/jar-applications.html
-* https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/getting-started/shrinkwrap.html
+https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.versions.swarm}}/getting-started/shrinkwrap.html
 
 ここまででだいたい以下のようなディレクトリ構成になっているかと思います。
 
 ``` sh
 .
-├── mvnw
-├── mvnw.cmd
 ├── pom.xml
 └── src
     └── main
         └── java
-            └── helloworld
-                ├── App.java
-                └── HelloWorld.java
+            ├── helloworld
+            │   └── HelloWorld.java
+            └── wildflyswarm
+                └── Bootstrap.java
 ```
 
 必要なものはそろったので、以下コマンドを実行しビルドします。
 
 ``` sh
-$ ./mvnw clean package
+$ mvn clean package
 ```
 
 > スーパー jar ダウンロードタイムが始まるのでコーヒーでも用意して気長にお待ちください。
@@ -180,6 +204,8 @@ $ curl localhost:8080/hello
 
 やりましたね。通常はここで WildFly をダウンロード、アプリをビルドしてから WildFly にデプロイといった手順が入りますが、WildFly Swarm では不要です。
 
+> Spring Boot をはじめて触った時の感動が蘇ってきますね。
+
 アプリケーションを作って実行するところまではなんとなくつかめたでしょうか? では次の章では CRUD なアプリケーションに取りかかっていきます。
 
 以降は補足なので、読まなくても差し支えありません。
@@ -193,12 +219,12 @@ $ curl localhost:8080/hello
 WildFly Swarm Plugin は wildfly-swarm:run というゴールが用意されています。
 
 ``` sh
-$ ./mvnw wildfly-swarm:run
+$ mvn wildfly-swarm:run
 ```
 
 ### IDE からの実行
 
-App クラスは main() メソッドを持つクラスですので各 IDE からこの main() メソッドを指定して実行することもできます。
+Bootstrap クラスは main() メソッドを持つクラスですので、各 IDE からこの main() メソッドを指定して実行することもできます。
 
 ## 補足2 javax.ws.rs.core.Application を extends したクラスは?
 
@@ -227,12 +253,12 @@ public class HelloWildFlySwarm extends Application { // 追加
 では再ビルドしてアクセス。
 
 ``` sh
-$ ./mvnw clean package && java -jar target/helloworld-swarm.jar
+$ mvn clean package && java -jar target/helloworld-swarm.jar
 $ curl localhost:8080/api/hello
 {"message" : "Hello, WildFly Swarm!"}%
 ```
 
-いいですね。ただ、このエントリ内では画面を返すようなフレームワークは使わず、アプリケーションのエンドポイントはすべて JAX-RS なクラスなので、この設定はしないでおきます。
+いいですね。
 
 ## 補足3 コンテキストルートは "/" 固定なの?
 
@@ -249,14 +275,16 @@ $ curl localhost:8080/api/hello
 1 つは実行時に渡す方法です。
 
 ``` sh
-$ java -jar hello-wildfly-swarm/target/hello-wildfly-swarm-swarm.jar
+$ java -Dswarm.context.path=helloworld -jar target/helloworld-swarm.jar
 ```
+
 or
-```
+
+``` sh
 $ java -jar target/helloworld-swarm.jar -Dswarm.context.path=helloworld
 ```
 
-> 後者のように引数として渡す場合は new Container(args) と main() の引数を渡しておく必要があります。
+> 後者のように引数として渡す場合は、Bootstrap クラスにおいて Swarm インスタンスを作成する際、new Swarm(args) とコマンドライン引数を渡しておく必要があります。
 
 もう 1 つは wildfly-swarm-plugin に指定する方法です。
 
@@ -271,7 +299,7 @@ $ java -jar target/helloworld-swarm.jar -Dswarm.context.path=helloworld
 
 その他に利用できるシステムプロパティは以下に記載されています。
 
-https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/configuration_properties.html
+https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.versions.swarm}}/configuration_properties.html
 
 ### jboss-web.xml で設定
 
@@ -284,23 +312,38 @@ https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/configuratio
 </jboss-web>
 ```
 
-そして App クラスでこのファイルを含めるように設定します。`addAsWebInfResource(...)` はその名の通り、war パッケージングでの WEB-INF 以下に含めてね、というメソッドです。
+そして Bootstrap クラスでこのファイルを含めるように設定します。`addAsWebInfResource(...)` はその名の通り、war パッケージングでの WEB-INF 以下に含めてね、というメソッドです。
 
 ``` java
 import org.jboss.shrinkwrap.api.asset.ClassLoaderAsset;
 [...]
-deployment.addAsWebInfResource(
-      new ClassLoaderAsset("jboss-web.xml", App.class.getClassLoader()), "jboss-web.xml");
+archive.addAsWebInfResource(
+      new ClassLoaderAsset("jboss-web.xml", Bootstrap.class.getClassLoader()), "jboss-web.xml");
 ```
 
-> ここでは jboss-web.xml がクラスパス(src/main/resources 以下)にあると仮定して `org.jboss.shrinkwrap.api.asset.ClassLoaderAsset` を使っています。
+ここでは以下のように jboss-web.xml がクラスパス(src/main/resources 以下)にあるとします。
+
+``` sh
+.
+├── pom.xml
+└── src
+    └── main
+        ├── java
+        │   ├── helloworld
+        │   │   └── HelloWorld.java
+        │   └── wildflyswarm
+        │       └── Bootstrap.java
+        └── resources
+            └── jboss-web.xml
+```
+
 
 ### WildFly Swarm の API を利用
 
 以下のように指定することもできます。
 
 ``` java
-deployment.setContextRoot("helloworld");
+archive.setContextRoot("/helloworld");
 ```
 
 これは前述の jboss-web.xml での設定をプログラムでできるようにしています。その他のメソッドについては javadoc を参照ください。
@@ -309,23 +352,6 @@ https://wildfly-swarm.github.io/wildfly-swarm-javadocs/{{book.versions.swarm}}/a
 
 ### 動作確認
 
-(jboss-web.xml も作ったとすると)プロジェクトとしてはこんな感じです。
-
-``` sh
-.
-├── mvnw
-├── mvnw.cmd
-├── pom.xml
-└── src
-    └── main
-        ├── java
-        │   └── helloworld
-        │       ├── App.java
-        │       └── HelloWorld.java
-        └── resources
-            └── jboss-web.xml
-```
-
 では上記いずれかの方法で修正し、必要であれば再ビルドしてからアクセス。
 
 ``` sh
@@ -333,7 +359,7 @@ $ curl localhost:8080/helloworld/hello
 {"message" : "Hello, WildFly Swarm!"}
 ```
 
-いいかんじです。ただ、このエントリではこの設定もやりません。
+いいかんじです。
 
 ## 補足4 war でのパッケージング
 
@@ -349,4 +375,4 @@ https://github.com/wildfly-swarm/wildfly-swarm-examples/tree/{{book.versions.swa
 
 war パッケージングに関するドキュメントは以下です。
 
-https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/getting-started/war-applications.html
+https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.versions.swarm}}/getting-started/war-applications.html

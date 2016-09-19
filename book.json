@@ -3,16 +3,19 @@
   "root": "./docs",
   "variables": {
     "versions": {
-      "swarm": "1.0.0.Final",
-      "swarm_core": "1.0.2.Final",
+      "swarm": "2016.9",
       "jdk": "8",
       "maven": "3.3.9",
-      "postgresql": "9.5.3",
-      "keycloak": "1.9.8.Final",
-      "docker": "1.11.2",
-      "docker_compose": "1.7.0",
-      "fedora": "23 Workstation",
-      "centos": "7.2.1511"
+      "postgresql": "9.5.4",
+      "postgresql_jdbc": "9.4.1211",
+      "keycloak": "2.1.0.Final",
+      "docker": "1.12.1",
+      "docker_compose": "1.8.0",
+      "lombok": "1.16.10",
+      "resteasy": "3.1.0.Beta2",
+      "arquillian": "1.1.10.Final",
+      "maven_failsafe_plugin": "2.19.1",
+      "docker_maven_plugin": "0.16.2"
     }
   }
 }

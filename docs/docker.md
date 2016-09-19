@@ -6,19 +6,13 @@
 
 Docker なしでここまで頑張ってこられた方も、そろそろあきらめて Dokcer が使える環境を用意してみてください。
 
-再掲になりますが Docker のセットアップについては下記公式サイトや[日本語化プロジェクト](http://docs.docker.jp/)、各種 Web 情報をご覧ください。
-
-* [Windows](http://docs.docker.com/windows/started/)
-* [Mac OS X](http://docs.docker.com/mac/started/)
-* [Linux](http://docs.docker.com/linux/started/)
-
-Docker セットアップ後は sudo なしで docker コマンドが叩けるよう、ユーザを `docker` グループに入れておくと便利です。
+> Docker のセットアップについては [環境](environment.md#docker) を参照ください。
 
 ## lifelog の Docker イメージのビルド
 
 まずは lifelog の Dokcer イメージを作るところからです。
 
-以下内容で `Dockerfile` という Makefile のようなものをプロジェクト直下(initial ディレクトリ)に作ります。
+以下内容で `Dockerfile` という Makefile のようなものをプロジェクト直下に作ります。
 
 ``` dockerfile
 FROM jboss/base-jdk:8
@@ -33,20 +27,21 @@ ENTRYPOINT ["java", "-jar", "/opt/lifelog-swarm.jar"]
 
 おおざっぱに以下に内容を説明します。
 
-* FROM: `jboss/base-jdk:8` は、OpenJDK 8 がインストールされている CentOS 7.1.1503 環境です。これをベースにイメージを作っていきます。
+* FROM: `jboss/base-jdk:8` は、OpenJDK 8 がインストールされている環境です。これをベースにイメージを作っていきます。
 * MAINTAINER: javadoc でいう @author のようなもので、内容は任意です。
-* ADD: ホスト側の lifelog-docker-swarm.jar を /opt 以下に追加します。
+* ADD: ホスト側でビルドした `target/lifelog-swarm.jar` をコンテナの /opt 以下に追加します。
 * EXPOSE: ここで指定したポート番号は他の Docker コンテナから環境変数を通して取得できます。
 * ENTRYPOINT: このイメージから Dokcer コンテナを起動する際に実行されるコマンドです。
 
 > ここでは最低限のことしかしていませんが、実行可能 jar だと Dockerfile はずいぶん書きやすいです。
 > もし普通の WildFly でやろうとすると以下のようなイメージになります。WildFly をダウンロードしたりいろいろ設定するシェルを用意したりして、ちょっとめんどっちいですね。
+>
 > https://github.com/rafabene/devops-demo/tree/master/Dockerfiles/ticketmonster
 
 上記の Dockerfile の通り、ビルドした lifelog-swarm.jar が必要ですので、先に lifelog をビルドしておきます。
 
 ``` sh
-$ ./mvnw clean package
+$ mvnw clean package
 ```
 
 `docker build` で lifelog の Docker イメージを作成します。
@@ -60,6 +55,7 @@ $ docker build -t <お好きなお名前>/lifelog .
 > 今回は利用しませんが、Docker Hub でアカウントを作成すると、自分で作ったイメージを push できるようになります。
 > push したイメージは docker pull で任意のホスト上で利用できるようになります。
 > FROM で指定している jboss/base-jdk:8 も Docker Hub に登録されているもので、これを pull しています。
+>
 > https://hub.docker.com/r/jboss/base-jdk/
 
 イメージができたかは `docker images` で確認できます。
@@ -83,7 +79,7 @@ $ docker run -it -d \
 
 * -d: デーモンとして起動
 * --name: コンテナに名前をつける場合指定。ここでは lifelog
-* -v: <host_path>:<container_path> という書式でホストの <host_path> を <container_path> にマウント
+* -v: `<host_path>:<container_path>` という書式でホストの `<host_path>` を `<container_path>` にマウント
 * -e: コンテナに設定する環境変数
 * -p: 8080:8080 を指定することで、ローカルホスト(Docker ホスト)の 8080 ポートを Docker コンテナの 8080 ポートにポートフォワード
 * emag/lifelog: イメージを指定
@@ -140,6 +136,10 @@ DB_PORT_5432_TCP_PORT=5432
 
 というわけで、環境変数が与えられた場合はそちらを利用するように PostgreSQL と Keycloak Server の URL の設定部分を変更します。
 
+完成版は以下リポジトリにありますので、適宜参照ください。
+
+https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/docker
+
 PostgreSQL の URL は lifelog.LifeLogConfiguration で設定しているので、こちらを以下のように変更します。
 
 ``` java
@@ -158,9 +158,9 @@ DatasourcesFraction datasourcesFraction(String datasourceName) {
 private String databaseConnectionUrl() {
   String urlFromEnv = System.getenv("DB_PORT_5432_TCP_ADDR") + ":" + System.getenv("DB_PORT_5432_TCP_PORT");
 
-  return urlFromEnv.equals(":") ?
-    resolve("database.connection.url") :
-    "jdbc:postgresql://" + urlFromEnv + "/lifelog";
+  return urlFromEnv.equals("null:null")
+    ? resolve("database.connection.url")
+    : "jdbc:postgresql://" + urlFromEnv + "/lifelog";
 }
 ```
 
@@ -180,20 +180,18 @@ private static void replaceKeycloakJson(Archive deployment) {
 
 // 追加
 private static String authServerUrl() {
-  String urlFromEnv = System.getenv("AUTH_PORT_8080_TCP_ADDR") + ":" + System.getenv("AUTH_PORT_8080_TCP_PORTT");
+  String urlFromEnv = System.getenv("AUTH_PORT_8080_TCP_ADDR") + ":" + System.getenv("AUTH_PORT_8080_TCP_PORT");
 
-  if (! urlFromEnv.equals(":")) {
-    return "http://" + urlFromEnv +  "/auth";
-  }
-
-  return System.getProperty("swarm.auth.server.url", "http://localhost:18080/auth");
+  return urlFromEnv.equals("null:null")
+    ? System.getProperty("swarm.auth.server.url", "http://localhost:18080/auth")
+    : "http://" + urlFromEnv +  "/auth";
 }
 ```
 
 ここまで変更したら lifelog のビルド及びイメージのビルドを実行します。
 
 ``` sh
-$ ./mvnw clean package && docker build -t emag/lifelog .
+$ mvn clean package && docker build -t emag/lifelog .
 ```
 
 これで `--link` を用いて各サーバのコンテナの URL を取得できるようになります。
@@ -250,17 +248,15 @@ http://docs.docker.com/compose/
 
 http://docs.docker.com/compose/install/
 
-``` sh
-$ docker-compose --version
-docker-compose version 1.7.0, build 0d7bf73
-```
+<pre><code class="lang-sh">$ docker-compose --version
+docker-compose version {{book.versions.docker_compose}}, build &lt;some number&gt;
+</code></pre>
 
 次に、以下のような `docker-compose.yml` という設定ファイルを用意します。
 
 `docker run` するときの情報を並べただけって感じですね。
 
-<pre><code class="yml">
-lifelog:
+<pre><code class="yml">lifelog:
   image: emag/lifelog
   volumes:
     - .:/tmp/project
@@ -271,11 +267,13 @@ lifelog:
     - lifelog-auth:auth
   ports:
     - 8080:8080
+
 lifelog-db:
   image: postgres:{{book.versions.postgresql}}
   environment:
     POSTGRES_USER: lifelog
     POSTGRES_PASSWORD: lifelog
+
 lifelog-auth:
   image: jboss/keycloak:{{book.versions.keycloak}}
   volumes:

@@ -10,24 +10,62 @@ http://arquillian.org/
 
 しかし、WildFly Swarm では WildFly 本体を含んで実行するのでちょっと事情が違います。そこで WildFly Swarm では Arquillian のモジュールも用意しており、簡単に使えるようになっています。
 
-https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/testing_with_arquillian.html
+https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.versions.swarm}}/testing/arquillian.html
 
-では `arquillian/initial` プロジェクトの pom.xml を見てみますと、テスト用の設定として以下が追加されています。
+では先ほど作成した lifelog アプリケーションに Arquillian を用いたテストを作成していきましょう。
 
-``` xml
-<dependency>
-  <groupId>org.wildfly.swarm</groupId>
-  <artifactId>arquillian</artifactId>
-  <scope>test</scope>
-</dependency>
-<dependency>
-  <groupId>org.jboss.arquillian.junit</groupId>
-  <artifactId>arquillian-junit-container</artifactId>
-  <scope>test</scope>
-</dependency>
-```
+完成版は以下リポジトリにありますので、適宜参照ください。
 
-これが WildFly Swarm 用の Arquillian に必要な設定です。
+https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/arquillian
+
+まず pom.xml に Arquillian を利用する設定を追加します。
+
+<pre><code class="lang-xml">&lt;properties&gt;
+  [...]
+  &lt;version.arquillian&gt;{{book.versions.arquillian}}&lt;/version.arquillian&gt;
+  &lt;version.resteasy&gt;{{book.versions.resteasy}}&lt;/version.resteasy&gt;
+
+  &lt;version.maven-failsafe-plugin&gt;{{book.versions.maven_failsafe_plugin}}&lt;/version.maven-failsafe-plugin&gt;
+&lt;/properties&gt;
+
+[...]
+
+&lt;dependencyManagement&gt;
+  &lt;dependencies&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.wildfly.swarm&lt;/groupId&gt;
+      &lt;artifactId&gt;bom-all&lt;/artifactId&gt;
+      &lt;version&gt;${version.wildfly-swarm}&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.jboss.arquillian&lt;/groupId&gt;
+      &lt;artifactId&gt;arquillian-bom&lt;/artifactId&gt;
+      &lt;version&gt;${version.arquillian}&lt;/version&gt;
+      &lt;type&gt;pom&lt;/type&gt;
+      &lt;scope&gt;import&lt;/scope&gt;
+    &lt;/dependency&gt;
+  &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+
+[...]
+
+&lt;dependencies&gt;
+  [...]
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.wildfly.swarm&lt;/groupId&gt;
+    &lt;artifactId&gt;arquillian&lt;/artifactId&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
+  &lt;/dependency&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.jboss.arquillian.junit&lt;/groupId&gt;
+    &lt;artifactId&gt;arquillian-junit-container&lt;/artifactId&gt;
+    &lt;scope&gt;test&lt;/scope&gt;
+  &lt;/dependency&gt;
+  [...]
+&lt;/dependencies&gt;
+</code></pre>
 
 また、今回作るテストは起動した WildFly の内部でなく外からテスト(@RunAsClient)するため、HTTP クライアントの依存性を別途追加しておきます。
 
@@ -63,21 +101,21 @@ https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/testing_with
 </plugin>
 ```
 
-では実際にテストを `src/test` 配下に記述します。ここでは lifelog.api.EntryController のテストを作成します。
+では実際にテストを `src/test` 配下に記述します。ここでは `lifelog.api.EntryController` のテストとして `lifelog.api.EntryControllerIT` を作成します。
 
 ``` java
 package lifelog.api;
 
-import lifelog.LifeLogContainer;
-import lifelog.LifeLogDeployment;
+import wildflyswarm.LifeLogContainer;
+import wildflyswarm.LifeLogDeployment;
 import lifelog.domain.model.Entry;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.wildfly.swarm.ContainerFactory;
-import org.wildfly.swarm.container.Container;
+import org.wildfly.swarm.Swarm;
+import org.wildfly.swarm.arquillian.CreateSwarm;
 import org.wildfly.swarm.jaxrs.JAXRSArchive;
 
 import javax.ws.rs.client.Client;
@@ -96,19 +134,19 @@ import static org.junit.Assert.assertThat;
 
 // (1) Arquillian でテストする場合は以下のように @RunWith を指定
 @RunWith(Arquillian.class)
-public class EntryControllerIT implements ContainerFactory {
+public class EntryControllerIT {
 
   @Deployment(testable = false) // (2) testable=false としておくと、コンテナの外からのテスト(@RunAsClient アノテーションも同様)
   public static JAXRSArchive createDeployment() {
     // (3) デプロイするアーカイブ設定。LifeLogDeployment.deployment() をそのまま使う
-    return LifeLogDeployment.deployment();
+    return LifeLogDeployment.deployment().addClass(LifeLogContainer.class);
   }
 
-  // (4) org.wildfly.swarm.container.Container を implements した場合、このメソッドでコンテナ設定を行う
-  @Override
-  public Container newContainer(String... args) throws Exception {
+  // (4) @CreateSwarm を付与したメソッドでコンテナ設定を行う
+  @CreateSwarm
+  public static Swarm newContainer() throws Exception {
     // コンテナの設定。LifeLogContainer.newContainer() をそのまま使う
-    return LifeLogContainer.newContainer(args);
+    return LifeLogContainer.newContainer(new String[0]);
   }
 
   // (5) testable = false の時に使う。ホスト名やポート番号がインジェクションされる
@@ -169,7 +207,9 @@ public class EntryControllerIT implements ContainerFactory {
 }
 ```
 
-(1) - (5) までが Arquillian の設定のもろもろです。通常の Arquillian 設定と異なるところとしては (4) のコンテナ設定があげられます。
+(1) - (5) までが Arquillian の設定のもろもろです。
+
+通常の Arquillian 設定と異なるところとしては (4) のコンテナ設定があげられます。また、(3) ではもともとの `LifeLogDeployment.deployment()` だけだと LifeLogContainer クラスが見えないため、追加しておきます。
 
 また、(3)(4) ではプロダクションコードで作っていおいたコードをそのまま利用しています。
 
@@ -180,7 +220,7 @@ public class EntryControllerIT implements ContainerFactory {
 それでは以下コマンドでテストを実行します。
 
 ``` sh
-$ ./mvnw clean verify
+$ mvn clean verify
 [...]
 -------------------------------------------------------
  T E S T S
