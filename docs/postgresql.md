@@ -12,7 +12,7 @@ PostgreSQL はお好みの方法で用意してもらえればと思いますが
 
 PostgreSQL が初めてという方でかつ、Docker が利用できる環境であれば以下のようにしてコンテナを用意するのが楽だと思います。
 
-> このドキュメントでは最後の章で Docker を使うので、そういう意味でも Docker での利用をおすすめします。
+> このドキュメントではいろいろと Docker を使うので、そういう意味でも Docker での利用をおすすめします。
 
 <pre><code class="lang-sh">$ docker run -it -d \
   --name lifelog-db \
@@ -215,7 +215,7 @@ public class LifeLogConfiguration {
 }
 ```
 
-private メソッドの resolve(String key) が肝のところです。`swarm.stageConfig().resolve(key).getValue()` の key は `lifelog-stage-config.yml` の各キーをピリオド区切りで渡します。例えば `database: connection: url` なら `database.connection.url` です。
+private メソッドの resolve(String key) が肝のところです。`swarm.stageConfig().resolve(key).getValue()` の key は `lifelog-project-stages.yml` の各キーをピリオド区切りで渡します。例えば `database: connection: url` なら `database.connection.url` です。
 
 最後に LifeLogConfiguration を利用するように LifeLogContainer を変更します。
 
@@ -247,7 +247,7 @@ public class LifeLogContainer {
 
 ``` sh
 .
-├── lifelog-stage-config.yml
+├── lifelog-project-stages.yml
 ├── pom.xml
 └── src
     ├── main

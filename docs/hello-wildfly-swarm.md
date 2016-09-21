@@ -290,7 +290,7 @@ $ java -jar target/helloworld-swarm.jar -Dswarm.context.path=helloworld
 
 ``` xml
 <configuration>
-  <mainClass>wildflyswarmtour.App</mainClass>
+  <mainClass>wildflyswarm.Bootstrap</mainClass>
   <properties>
     <swarm.context.path>helloworld</swarm.context.path> <!-- ここ -->
   </properties>

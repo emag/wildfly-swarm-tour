@@ -100,7 +100,7 @@ $ rm -fr src/main/java/wildflyswarm/App.java src/test/*
 &lt;/project&gt;
 <code></pre>
 
-今回は JAX-RS と CDI、JPA を使えるようにしておきます(1)。また、サードパーティのライブラリを利用します(2)。なお、lombok 自体はコンパイル時のみにしか利用しないため(provided スコープ)、実際にアーカイブに含めないのであまり影響ありませんが、ランタイム時にも必要なライブラリがある場合は、後述する `Archive#addAllDependencies()` を App クラスで設定します。
+今回は JAX-RS と CDI、JPA を使えるようにしておきます(1)。また、サードパーティのライブラリを利用します(2)。なお、lombok 自体はコンパイル時のみにしか利用しないため(provided スコープ)、実際にアーカイブに含めないのであまり影響ありませんが、ランタイム時にも必要なライブラリがある場合は、後述する `Archive#addAllDependencies()` を Bootstrap クラスで設定します。
 
 では次からいろいろと作ってみましょう。
 
