@@ -10,7 +10,7 @@ Java EE、特に JAX-RS + CDI + JPA を簡単に使ったことがあって、�
 
 とはいえ、アプリケーション自体は単純であり、また簡単にですが説明は入れていきますので、まったく Java EE は初めての方でも Java で Web アプリケーションを作ったことがあればすんなりわかる内容かと思います。
 
-ここがおかしいですとか、わかりづらいことがあれば [Twitter](https://twitter.com/emaggame) で声をかけていただると幸いです。
+ここがおかしいですとか、わかりづらいこと、その他触れてほしい話題等ありましたら [GihHub の Issue](https://github.com/emag/wildfly-swarm-tour/issues) に立てていただくか、[Twitter](https://twitter.com/emaggame) で声をかけていただると幸いです。Pull Request ももちろん大歓迎です。
 
 ## その他情報
 
