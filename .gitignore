@@ -25,6 +25,9 @@ Thumbs.db
 # Maven output folder
 target
 
+# Java
+hsperfdata_*
+
 # Gradle
 .gradle
 build
