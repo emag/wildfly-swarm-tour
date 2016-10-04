@@ -197,7 +197,7 @@
                     </wait>
                     <log>
                       <prefix>LIFELOG_AUTH</prefix>
-                      <color>yellow</color>
+                      <color>cyan</color>
                     </log>
                   </run>
                 </image>
