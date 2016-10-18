@@ -15,4 +15,5 @@ http://wildfly-swarm.io/
 * 使いたいモジュールだけ利用(JAX-RS, CDI, JPA などなど)
  * WildFly ではこういったモジュールのことを [Fraction](https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.versions.swarm}}/getting-started/concepts.html) と呼んでいます
 * Logstash や Netflix OSS、Swagger などのインテグレーション
-* WildFly の設定を網羅
+* WildFly の設定を`ほぼ`網羅
+ * サポートされない設定については [付録 WildFly Swarm の注意点](notes.md) を参照ください。
