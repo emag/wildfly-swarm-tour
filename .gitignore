@@ -55,3 +55,6 @@ overlays
 # gitbook
 node_modules
 _book
+
+# misc.
+check-resources.result
