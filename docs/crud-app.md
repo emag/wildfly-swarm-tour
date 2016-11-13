@@ -380,7 +380,7 @@ public class EntryController {
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<EntryResponse> findALL() {
+  public List<EntryResponse> findAll() {
     List<Entry> allEntries = entryService.findAll();
     return allEntries.stream()
       .map(EntryResponse::from)
