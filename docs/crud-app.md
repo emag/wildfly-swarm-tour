@@ -106,7 +106,7 @@ $ rm -fr src/main/java/wildflyswarm/App.java src/test/*
 
 ## persistence.xml
 
-まずは JPA の設定ファイルです。以下内容で `src/main/resources/META-INF` 以下に置いておきます。だいたいの意味もコメントしておきました。
+まずは JPA の設定ファイルです。`src/main/resources/META-INF/persistence.xml` として以下の内容で作成します。だいたいの意味もコメントしておきました。
 
 ``` xml
 <persistence version="2.1"
@@ -183,7 +183,7 @@ public class Entry implements Serializable {
 
 [Using JPA 2.1 AttributeConverter against Java8 LocalDate / LocalDateTime](http://www.nailedtothex.org/roller/kyle/entry/using-jpa-2-1-attributeconverter)
 
-Java EE 7 の JPA 2.1 ではフィールドに Date and Time API はそのままでは使えないので、以下の `lifelog.domain.model.converter.LocalDateTimeConverter` のようなコンバータを用意してあげる必要があります。
+Java EE 7 の JPA 2.1 ではフィールドに Date and Time API はそのままでは使えないので、以下の `lifelog.domain.model.converter.LocalDateTimeConverter` のように `java.time.LocalDateTime` と `java.sql.Timestamp` とを相互に変換するコンバータを用意する必要があります。
 
 ``` java
 package lifelog.domain.model.converter;
@@ -297,7 +297,7 @@ public class EntryRepository {
 
 ## Service
 
-JAX-RS などのプレゼンテーション層から呼ばれることを想定した Service クラスです。実際の処理は先ほど作った EntryRepository に委譲しています。
+次に、JAX-RS などのプレゼンテーション層から呼ばれることを想定した Service クラスとして `lifelog.domain.service.EntryService` を作成します。実際の処理は先ほど作った EntryRepository に委譲しています。
 
 また、クラスレベルで `javax.transaction.Transactional` を設定しているため、すべてのメソッドにおいてトランザクションが走ります。
 
@@ -344,7 +344,7 @@ public class EntryService {
 
 ## Resource
 
-JAX-RS のリソースクラスとして `lifelog.api.EntryController` として作成します。JSON でリクエストを受け付け(javax.ws.rs.Consumes)、レスポンス(javax.ws.rs.Produces)を行います。また、CRUD 操作の実体は EntryService クラスに処理を委譲しています。
+JAX-RS のリソースクラスとして `lifelog.api.EntryController` を作成します。JSON でリクエストを受け付け(javax.ws.rs.Consumes)、レスポンス(javax.ws.rs.Produces)を行います。また、CRUD 操作の実体は EntryService クラスに処理を委譲しています。
 
 ``` java
 package lifelog.api;
@@ -530,7 +530,7 @@ public class EntryResponse implements Serializable {
 
 ## WildFly Swarm 固有クラスによるアプリケーションの設定
 
-ここまではふつうの Java EE アプリケーション開発という感じでした。最後に Hello World の時と同様、WildFly Swarm 固有のクラスとして WildFly の起動からアプリケーションのデプロイまでを表現する Bootstrap クラスを作成します。
+ここまではふつうの Java EE アプリケーション開発という感じでした。最後に Hello World の時と同様、WildFly Swarm 固有のクラスとして WildFly の起動からアプリケーションのデプロイまでを表現する `wildflyswarm.Bootstrap` クラスを作成します。
 
 ``` java
 package wildflyswarm;
