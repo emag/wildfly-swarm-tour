@@ -22,10 +22,12 @@ https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/arq
 
 <pre><code class="lang-xml">&lt;properties&gt;
   [...]
+  &lt;!-- 追記 ここから --&gt;
   &lt;version.arquillian&gt;{{book.versions.arquillian}}&lt;/version.arquillian&gt;
   &lt;version.resteasy&gt;{{book.versions.resteasy}}&lt;/version.resteasy&gt;
 
   &lt;version.maven-failsafe-plugin&gt;{{book.versions.maven_failsafe_plugin}}&lt;/version.maven-failsafe-plugin&gt;
+  &lt;!-- 追記 ここまで --&gt;
 &lt;/properties&gt;
 
 [...]
@@ -39,6 +41,7 @@ https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/arq
       &lt;type&gt;pom&lt;/type&gt;
       &lt;scope&gt;import&lt;/scope&gt;
     &lt;/dependency&gt;
+    &lt;!-- 追記 ここから --&gt;
     &lt;dependency&gt;
       &lt;groupId&gt;org.jboss.arquillian&lt;/groupId&gt;
       &lt;artifactId&gt;arquillian-bom&lt;/artifactId&gt;
@@ -46,6 +49,7 @@ https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/arq
       &lt;type&gt;pom&lt;/type&gt;
       &lt;scope&gt;import&lt;/scope&gt;
     &lt;/dependency&gt;
+    &lt;!-- 追記 ここまで --&gt;
   &lt;/dependencies&gt;
 &lt;/dependencyManagement&gt;
 
@@ -53,6 +57,7 @@ https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/arq
 
 &lt;dependencies&gt;
   [...]
+  &lt;!-- 追記 ここから --&gt;
   &lt;dependency&gt;
     &lt;groupId&gt;org.wildfly.swarm&lt;/groupId&gt;
     &lt;artifactId&gt;arquillian&lt;/artifactId&gt;
@@ -63,6 +68,7 @@ https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/arq
     &lt;artifactId&gt;arquillian-junit-container&lt;/artifactId&gt;
     &lt;scope&gt;test&lt;/scope&gt;
   &lt;/dependency&gt;
+  &lt;!-- 追記 ここまで --&gt;
   [...]
 &lt;/dependencies&gt;
 </code></pre>
