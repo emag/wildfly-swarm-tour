@@ -12,7 +12,7 @@
       "docker": "1.12.1",
       "docker_compose": "1.8.0",
       "lombok": "1.16.10",
-      "resteasy": "3.1.0.Beta2",
+      "resteasy": "3.1.0.CR3",
       "arquillian": "1.1.10.Final",
       "maven_failsafe_plugin": "2.19.1",
       "docker_maven_plugin": "0.16.2"

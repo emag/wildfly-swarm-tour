@@ -19,7 +19,7 @@
     <version.postgresql-jdbc>9.4.1211</version.postgresql-jdbc>
 
     <version.arquillian>1.1.10.Final</version.arquillian>
-    <version.resteasy>3.1.0.Beta2</version.resteasy>
+    <version.resteasy>3.1.0.CR3</version.resteasy>
 
     <version.maven-failsafe-plugin>2.19.1</version.maven-failsafe-plugin>
     <version.docker-maven-plugin>0.16.2</version.docker-maven-plugin>
