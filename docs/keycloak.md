@@ -16,9 +16,9 @@ Keycloak を利用した場合の大ざっぱな仕組みとしては以下の�
 ここではすでに用意した Keycloak の設定ファイル(keycloak.json/lifelog.json)を利用しますので、以下からダウンロードしそれぞれ配置してください。
 
 * src/main/resources/keycloak.json
- * https://github.com/emag/wildfly-swarm-tour/blob/{{book.versions.swarm}}/code/keycloak/src/main/resources/keycloak.json
-* lifelog.json
- * https://github.com/emag/wildfly-swarm-tour/blob/{{book.versions.swarm}}/code/keycloak/lifelog.json
+ * https://gist.githubusercontent.com/emag/c16eb10eed22d1cb944cecb4b7168dd4/raw/2b7104ae8b9428b85756cb92f7b2a5c5c09156e1/keycloak.json
+* lifelog.json(プロジェクト直下)
+ * https://gist.githubusercontent.com/emag/c16eb10eed22d1cb944cecb4b7168dd4/raw/2b7104ae8b9428b85756cb92f7b2a5c5c09156e1/lifelog.json
 
 ご自分で設定ファイルを作成してみたい場合は [付録 Keycloak の設定](keycloak-settings.md) を参照ください。
 
