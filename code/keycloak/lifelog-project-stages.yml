@@ -31,3 +31,5 @@ database:
     url: "jdbc:postgresql://localhost:5432/lifelog"
   userName: "lifelog"
   password: "lifelog"
+auth:
+  url: "http://localhost:18080/auth"

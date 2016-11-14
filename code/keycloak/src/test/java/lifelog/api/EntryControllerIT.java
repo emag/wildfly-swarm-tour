@@ -53,7 +53,7 @@ public class EntryControllerIT {
   @Test
   public void testWithLogin() {
     // Login
-    String keycloakUrl = System.getProperty("swarm.auth.server.url") + "/realms/lifelog/protocol/openid-connect/token";
+    String keycloakUrl = System.getProperty("auth.url") + "/realms/lifelog/protocol/openid-connect/token";
     Client client = ClientBuilder.newClient();
     WebTarget target = client.target(keycloakUrl);
 
