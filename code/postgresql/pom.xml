@@ -23,7 +23,7 @@
 
     <version.maven-failsafe-plugin>2.19.1</version.maven-failsafe-plugin>
     <version.docker-maven-plugin>0.17.2</version.docker-maven-plugin>
-    <version.postgresql-server>9.5.4</version.postgresql-server>
+    <version.postgresql-server>9.6.1</version.postgresql-server>
   </properties>
 
   <dependencyManagement>
