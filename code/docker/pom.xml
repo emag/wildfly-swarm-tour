@@ -22,7 +22,7 @@
     <version.resteasy>3.1.0.CR3</version.resteasy>
 
     <version.maven-failsafe-plugin>2.19.1</version.maven-failsafe-plugin>
-    <version.docker-maven-plugin>0.16.2</version.docker-maven-plugin>
+    <version.docker-maven-plugin>0.17.2</version.docker-maven-plugin>
     <version.postgresql-server>9.5.4</version.postgresql-server>
     <version.keycloak-server>2.1.0.Final</version.keycloak-server>
   </properties>
