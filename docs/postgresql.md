@@ -117,7 +117,7 @@ https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/pos
 
 次に、システムプロパティの値によって H2 と PostgreSQL を切り替えられるようにする部分です。
 
-まず `lifelog-project-stages.ym` というファイルを以下の内容で適当なパス(ここではプロジェクト直下)に配置します。
+まず `lifelog-project-stages.yml` というファイルを以下の内容で適当なパス(ここではプロジェクト直下)に配置します。
 
 ``` yml
 database:
