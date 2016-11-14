@@ -95,21 +95,6 @@ https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/pos
 </build>
 ```
 
-また、maven-failsafe-plugin に自分で追加した module を読めるようにする設定(`<configuration>` 要素)を追加しています。これがなくてもプロダクションコードは動きますが、Arquillian 側で PostgreSQL の JDBC ドライバの module.xml が読めません。
-
-``` xml
-<plugin>
-  <artifactId>maven-failsafe-plugin</artifactId>
-  <version>${version.maven-failsafe-plugin}</version>
-  <configuration>
-    <systemPropertyVariables>
-      <swarm.build.modules>${project.build.outputDirectory}/modules/</swarm.build.modules>
-    </systemPropertyVariables>
-  </configuration>
-  [...]
-</plugin>
-```
-
 次に、PostgreSQL JDBC ドライバの module.xml を `src/main/resources/modules/org/postgresql/main/module.xml` に以下内容で配置します。
 
 > この module.xml は WildFly 独自のもので、モジュールクラスローディングをするために必要です。

@@ -125,11 +125,6 @@
       <plugin>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>${version.maven-failsafe-plugin}</version>
-        <configuration>
-          <systemPropertyVariables>
-            <swarm.build.modules>${project.build.outputDirectory}/modules/</swarm.build.modules>
-          </systemPropertyVariables>
-        </configuration>
         <executions>
           <execution>
             <goals>
