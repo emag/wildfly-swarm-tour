@@ -6,18 +6,14 @@
 
 https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/helloworld
 
-まずは適当なディレクトリに移動し、以下コマンドを実行して Maven プロジェクトを作成します。
+まずは適当なディレクトリに移動し、こちらで用意した雛形のプロジェクト(helloworld_initial)を helloworld プロジェクトとしてコピーします。
 
-``` sh
-$ mvn archetype:generate -DgroupId=wildflyswarm -DartifactId=helloworld -DinteractiveMode=false
-```
+<pre><code class="lang-sh">$ curl -sL https://github.com/emag/wildfly-swarm-tour/archive/{{book.versions.swarm}}.zip -o /tmp/wildfly-swarm-tour.zip \
+  && unzip -q /tmp/wildfly-swarm-tour.zip -d /tmp/ \
+  && cp -rp /tmp/wildfly-swarm-tour-{{book.versions.swarm}}/code/helloworld_initial helloworld
+<code></pre>
 
-また、テンプレートとして作成される不要なファイルを削除しておきます。
-
-``` sh
-$ cd helloworld
-$ rm -fr src/main/java/wildflyswarm/App.java src/test/*
-```
+> IDE を利用される方はこの helloworld プロジェクトをインポートしてください。
 
 次に、以下のように pom.xml を書き換えます。
 
@@ -181,7 +177,7 @@ https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.ver
 必要なものはそろったので、以下コマンドを実行しビルドします。
 
 ``` sh
-$ mvn clean package
+$ ./mvnw clean package
 ```
 
 > スーパー jar ダウンロードタイムが始まるのでコーヒーでも用意して気長にお待ちください。
@@ -214,14 +210,14 @@ $ curl localhost:8080/hello
 
 ## 補足1 java -jar 以外の実行方法
 
-このドキュメントでは `mvn package` でビルドを行い、`java -jar` で生成された uber jar を指定して実行するようにしていますが、その他にも実行方法があります。
+このドキュメントでは `./mvnw package` でビルドを行い、`java -jar` で生成された uber jar を指定して実行するようにしていますが、その他にも実行方法があります。
 
 ### wildfly-swarm:run
 
 WildFly Swarm Plugin は wildfly-swarm:run というゴールが用意されています。
 
 ``` sh
-$ mvn wildfly-swarm:run
+$ ./mvnw wildfly-swarm:run
 ```
 
 ### IDE からの実行
@@ -255,7 +251,7 @@ public class HelloWildFlySwarm extends Application { // 追加
 では再ビルドしてアクセス。
 
 ``` sh
-$ mvn clean package && java -jar target/helloworld-swarm.jar
+$ ./mvnw clean package && java -jar target/helloworld-swarm.jar
 $ curl localhost:8080/api/hello
 {"message" : "Hello, WildFly Swarm!"}%
 ```

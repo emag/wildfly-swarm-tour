@@ -12,21 +12,17 @@
 
 とりあえず最低限 JDK 8 をインストールしておいていただければ、Hello World はすぐに試せます。
 
-> 正確には Maven も必要ですが、筆者のコード用のリポジトリでは Maven Wrapper を利用しているので
-> JDK だけ入っていれば試すことが可能です。
->
-> https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/helloworld
-
 OS はなんでもよいですが、筆者は Linux(Fedora) で動作確認しています。ビルド時などコマンドを実行する必要がありますが、Windows な方は適宜読み替えていただければと。すみません。
 
 ## Maven
 
-本資料はビルドツールとして [Maven](https://maven.apache.org/) を利用します。バージョンは最新のものを、少なくとも 3.2.5 以上の利用を推奨します。また、IDE 経由でビルドする場合、デフォルトで利用されるバンドルされた Maven のバージョンが古いことがあるのでご注意ください。
+本資料はビルドツールとして [Maven](https://maven.apache.org/) を利用します。[Maven Wrapper](https://github.com/takari/maven-wrapper) 込みの雛形のプロジェクトを用意してありますので、Maven を個別でインストールする必要はありません。
+
+Maven Warpper でなく、ご自身でインストールした Maven を利用したい場合は、最新バージョン(少なくとも 3.2.5 以上)の利用を推奨します。また、IDE 経由でビルドする場合、デフォルトで利用されるバンドルされた Maven のバージョンが古いことがあるのでご注意ください。
 
 > Maven のバージョンが低いと以下の問題が発生します。
 >
 > [SWARM-24: error packaging project: java.lang.NoClassDefFoundError: org/eclipse/aether/RepositorySystemSession](https://issues.jboss.org/browse/SWARM-24)
-
 
 ## Gradle
 

@@ -273,7 +273,7 @@ public class LifeLogContainer {
 ここまで出来て、PostgreSQL も起動していることも確認したうえで lifelog をビルド、実行します。ステージ用ファイルとステージの指定はそれぞれシステムプロパティ `swarm.project.stage.file`　と `swarm.project.stage` を渡します。なお、ファイルの指定にはプロトコルを渡す必要があります。
 
 ``` sh
-$ mvn clean package \
+$ ./mvnw clean package \
   && java -Dswarm.project.stage.file=file://`pwd`/lifelog-project-stages.yml \
     -Dswarm.project.stage=production \
     -jar target/lifelog-swarm.jar
@@ -296,7 +296,7 @@ public static JAXRSArchive createDeployment() {
 上記の変更ができたら IT を実行します。
 
 ``` sh
-$ mvn clean verify \
+$ ./mvnw clean verify \
   -Dswarm.project.stage.file=file://`pwd`/lifelog-project-stages.yml \
   -Dswarm.project.stage=production
 ```
@@ -483,7 +483,7 @@ DatasourcesFraction datasourcesFraction(String datasourceName) {
 ここまできたらステージおよびプロファイルに `it` を指定したうえで実行してみます。
 
 ``` sh
-$ mvn clean verify \
+$ ./mvnw clean verify \
   -Dswarm.project.stage.file=file://`pwd`/lifelog-project-stages.yml \
   -Dswarm.project.stage=it \
   -Pit

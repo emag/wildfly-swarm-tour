@@ -41,7 +41,7 @@ ENTRYPOINT ["java", "-jar", "/opt/lifelog-swarm.jar"]
 上記の Dockerfile の通り、ビルドした lifelog-swarm.jar が必要ですので、先に lifelog をビルドしておきます。
 
 ``` sh
-$ mvn clean package
+$ ./mvnw clean package
 ```
 
 `docker build` で lifelog の Docker イメージを作成します。
@@ -192,7 +192,7 @@ private static String authServerUrl() {
 ここまで変更したら lifelog のビルド及びイメージのビルドを実行します。
 
 ``` sh
-$ mvn clean package && docker build -t emag/lifelog .
+$ ./mvnw clean package && docker build -t emag/lifelog .
 ```
 
 これで `--link` を用いて各サーバのコンテナの URL を取得できるようになります。

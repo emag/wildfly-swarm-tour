@@ -226,7 +226,7 @@ public class EntryControllerIT {
 それでは以下コマンドでテストを実行します。
 
 ``` sh
-$ mvn clean verify
+$ ./mvnw clean verify
 [...]
 -------------------------------------------------------
  T E S T S

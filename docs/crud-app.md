@@ -6,22 +6,16 @@
 
 https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/lifelog
 
-まずは適当なディレクトリに移動し、以下コマンドを実行して Maven プロジェクトを作成します。
+helloworld の時と同様に適当なディレクトリに移動し、こちらで用意した雛形のプロジェクト(lifelog_initial)を lifelog プロジェクトとしてコピーします。
 
-``` sh
-$ mvn archetype:generate -DgroupId=wildflyswarm -DartifactId=lifelog -DinteractiveMode=false
-```
+<pre><code class="lang-sh">$ cp -rp /tmp/wildfly-swarm-tour-{{book.versions.swarm}}/code/lifelog_initial lifelog
+<code></pre>
 
-また、テンプレートとして作成される不要なファイルを削除しておきます。
-
-``` sh
-$ cd lifelog
-$ rm -fr src/main/java/wildflyswarm/App.java src/test/*
-```
-
-次に、以下のように pom.xml を書き換えます。
+> IDE を利用される方はこの lifelog プロジェクトをインポートしてください。
 
 ## pom.xml
+
+プロジェクトをコピーしたら、以下のように pom.xml を書き換えます。
 
 <pre><code class="lang-xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -688,7 +682,7 @@ public class Bootstrap {
 ではビルド及び実行してみます。
 
 ``` sh
-$ mvn clean package && java -jar target/lifelog-swarm.jar
+$ ./mvnw clean package && java -jar target/lifelog-swarm.jar
 ```
 
 とりあえず全件取得。
