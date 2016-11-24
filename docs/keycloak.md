@@ -16,9 +16,9 @@ Keycloak を利用した場合の大ざっぱな仕組みとしては以下の�
 ここではすでに用意した Keycloak の設定ファイル(keycloak.json/lifelog.json)を利用しますので、以下からダウンロードしそれぞれ配置してください。
 
 * src/main/resources/keycloak.json
- * https://github.com/emag/wildfly-swarm-tour/blob/{{book.versions.swarm}}/code/keycloak/src/main/resources/keycloak.json
-* lifelog.json
- * https://github.com/emag/wildfly-swarm-tour/blob/{{book.versions.swarm}}/code/keycloak/lifelog.json
+ * https://gist.githubusercontent.com/emag/c16eb10eed22d1cb944cecb4b7168dd4/raw/2b7104ae8b9428b85756cb92f7b2a5c5c09156e1/keycloak.json
+* lifelog.json(プロジェクト直下)
+ * https://gist.githubusercontent.com/emag/c16eb10eed22d1cb944cecb4b7168dd4/raw/2b7104ae8b9428b85756cb92f7b2a5c5c09156e1/lifelog.json
 
 ご自分で設定ファイルを作成してみたい場合は [付録 Keycloak の設定](keycloak-settings.md) を参照ください。
 
@@ -88,7 +88,7 @@ archive.as(Secured.class)
 では上記変更をふまえて lifelog をビルド・実行し、アクセスしてみましょう(Keycloak を 18080 ポートで起動しておくことを忘れずに)。
 
 ``` sh
-$ mvn clean package \
+$ ./mvnw clean package \
   && java \
   -Dswarm.project.stage.file=file://`pwd`/lifelog-project-stages.yml \
   -Dswarm.project.stage=production \
@@ -128,12 +128,18 @@ $ curl -X POST -H "Content-Type: application/json" -H "Authorization: bearer $TO
 
 いいですね。ちなみに TOKEN は 5 分で切れるのでお急ぎください。
 
-ここでもう少し編集しておきます。lifelog アプリケーション中に配置した keycloak.json を見ると、Keycloak Server の URL(auth-server-url)や公開鍵がハードコードされています。とりあえず URL だけでも外側から変更できるようにしておきましょう。ここではシステムプロパティ swarm.auth.server.url を渡すことにします。
+ここでもう少し編集しておきます。lifelog アプリケーション中に配置した keycloak.json を見ると、Keycloak Server の URL(auth-server-url)や公開鍵がハードコードされています。とりあえず URL だけでも外側から変更できるようにしておきましょう。ここでは `lifelog-project-stages.yml` に追記することにします。
 
-> 本当は lifelog-project-stages.yml で設定できるようにしたかったのですが、その場合 LifeLogDeployment に Swarm インスタンスを渡さなければいけなくなります。こうなってしまうと EntryContainerIT とコードが共有できなくなるため泣く泣くあきらめました。
-> まあ別に無理して共有しなくてもいいんですが。。
+``` yml
+---
+project:
+  stage: production
+[...]
+auth:
+  url: "http://localhost:18080/auth"
+```
 
-LifeLogDeployment を以下のように変更します。
+次に、LifeLogDeployment を以下のように変更します。
 
 ``` java
 import org.jboss.shrinkwrap.api.Archive;
@@ -185,14 +191,13 @@ keycloak.json の auth-server-url を `change_me` に変更しておきます。
 }
 ```
 
-ここまでできたら lifelog を再起動します。以下のように Keycloak Server の URL をシステムプロパティで渡すことができるようになりました。
+ここまでできたら lifelog を再起動します。先ほどと同様にトークンを取得し、POST できるか試してみてください。
 
 ``` sh
-$ mvn clean package \
+$ ./mvnw clean package \
   && java \
   -Dswarm.project.stage.file=file://`pwd`/lifelog-project-stages.yml \
   -Dswarm.project.stage=production \
-  -Dswarm.auth.server.url=http://localhost:18080/auth \
   -jar target/lifelog-swarm.jar
 ```
 
@@ -260,7 +265,7 @@ import javax.ws.rs.core.Form;
 [...]
 
 // (1)
-String keycloakUrl = System.getProperty("swarm.auth.server.url") + "/realms/lifelog/protocol/openid-connect/token";
+String keycloakUrl = System.getProperty("auth.url") + "/realms/lifelog/protocol/openid-connect/token";
 Client client = ClientBuilder.newClient();
 WebTarget target = client.target(keycloakUrl);
 
@@ -316,13 +321,15 @@ response = target.request()
   .delete();
 ```
 
-以下コマンドで実行します。
+以下コマンドで実行します。IT 用の Keycloak の URL をシステムプロパティ(`auth.url`)として渡しておく必要があります。
+
+> システムプロパティでなく lifelog-project-stages.yml で定義したいところですが、現状うまく値を取れないようです。。
 
 ``` sh
-$ mvn clean verify \
+$ ./mvnw clean verify \
   -Dswarm.project.stage.file=file://`pwd`/lifelog-project-stages.yml \
   -Dswarm.project.stage=it \
-  -Dswarm.auth.server.url=http://localhost:28080/auth \
+  -Dauth.url=http://localhost:28080/auth \
   -Pit
 ```
 

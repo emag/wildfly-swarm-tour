@@ -95,21 +95,6 @@ https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/pos
 </build>
 ```
 
-また、maven-failsafe-plugin に自分で追加した module を読めるようにする設定(`<configuration>` 要素)を追加しています。これがなくてもプロダクションコードは動きますが、Arquillian 側で PostgreSQL の JDBC ドライバの module.xml が読めません。
-
-``` xml
-<plugin>
-  <artifactId>maven-failsafe-plugin</artifactId>
-  <version>${version.maven-failsafe-plugin}</version>
-  <configuration>
-    <systemPropertyVariables>
-      <swarm.build.modules>${project.build.outputDirectory}/modules/</swarm.build.modules>
-    </systemPropertyVariables>
-  </configuration>
-  [...]
-</plugin>
-```
-
 次に、PostgreSQL JDBC ドライバの module.xml を `src/main/resources/modules/org/postgresql/main/module.xml` に以下内容で配置します。
 
 > この module.xml は WildFly 独自のもので、モジュールクラスローディングをするために必要です。
@@ -132,7 +117,7 @@ https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/pos
 
 次に、システムプロパティの値によって H2 と PostgreSQL を切り替えられるようにする部分です。
 
-まず `lifelog-project-stages.ym` というファイルを以下の内容で適当なパス(ここではプロジェクト直下)に配置します。
+まず `lifelog-project-stages.yml` というファイルを以下の内容で適当なパス(ここではプロジェクト直下)に配置します。
 
 ``` yml
 database:
@@ -288,7 +273,7 @@ public class LifeLogContainer {
 ここまで出来て、PostgreSQL も起動していることも確認したうえで lifelog をビルド、実行します。ステージ用ファイルとステージの指定はそれぞれシステムプロパティ `swarm.project.stage.file`　と `swarm.project.stage` を渡します。なお、ファイルの指定にはプロトコルを渡す必要があります。
 
 ``` sh
-$ mvn clean package \
+$ ./mvnw clean package \
   && java -Dswarm.project.stage.file=file://`pwd`/lifelog-project-stages.yml \
     -Dswarm.project.stage=production \
     -jar target/lifelog-swarm.jar
@@ -311,7 +296,7 @@ public static JAXRSArchive createDeployment() {
 上記の変更ができたら IT を実行します。
 
 ``` sh
-$ mvn clean verify \
+$ ./mvnw clean verify \
   -Dswarm.project.stage.file=file://`pwd`/lifelog-project-stages.yml \
   -Dswarm.project.stage=production
 ```
@@ -498,7 +483,7 @@ DatasourcesFraction datasourcesFraction(String datasourceName) {
 ここまできたらステージおよびプロファイルに `it` を指定したうえで実行してみます。
 
 ``` sh
-$ mvn clean verify \
+$ ./mvnw clean verify \
   -Dswarm.project.stage.file=file://`pwd`/lifelog-project-stages.yml \
   -Dswarm.project.stage=it \
   -Pit

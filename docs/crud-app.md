@@ -6,22 +6,16 @@
 
 https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/lifelog
 
-まずは適当なディレクトリに移動し、以下コマンドを実行して Maven プロジェクトを作成します。
+helloworld の時と同様に適当なディレクトリに移動し、こちらで用意した雛形のプロジェクト(lifelog_initial)を lifelog プロジェクトとしてコピーします。
 
-``` sh
-$ mvn archetype:generate -DgroupId=wildflyswarm -DartifactId=lifelog -DinteractiveMode=false
-```
+<pre><code class="lang-sh">$ cp -rp /tmp/wildfly-swarm-tour-{{book.versions.swarm}}/code/lifelog_initial lifelog
+<code></pre>
 
-また、テンプレートとして作成される不要なファイルを削除しておきます。
-
-``` sh
-$ cd lifelog
-$ rm -fr src/main/java/wildflyswarm/App.java src/test/*
-```
-
-次に、以下のように pom.xml を書き換えます。
+> IDE を利用される方はこの lifelog プロジェクトをインポートしてください。
 
 ## pom.xml
+
+プロジェクトをコピーしたら、以下のように pom.xml を書き換えます。
 
 <pre><code class="lang-xml">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
 &lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -106,7 +100,7 @@ $ rm -fr src/main/java/wildflyswarm/App.java src/test/*
 
 ## persistence.xml
 
-まずは JPA の設定ファイルです。以下内容で `src/main/resources/META-INF` 以下に置いておきます。だいたいの意味もコメントしておきました。
+まずは JPA の設定ファイルです。`src/main/resources/META-INF/persistence.xml` として以下の内容で作成します。だいたいの意味もコメントしておきました。
 
 ``` xml
 <persistence version="2.1"
@@ -183,7 +177,7 @@ public class Entry implements Serializable {
 
 [Using JPA 2.1 AttributeConverter against Java8 LocalDate / LocalDateTime](http://www.nailedtothex.org/roller/kyle/entry/using-jpa-2-1-attributeconverter)
 
-Java EE 7 の JPA 2.1 ではフィールドに Date and Time API はそのままでは使えないので、以下の `lifelog.domain.model.converter.LocalDateTimeConverter` のようなコンバータを用意してあげる必要があります。
+Java EE 7 の JPA 2.1 ではフィールドに Date and Time API はそのままでは使えないので、以下の `lifelog.domain.model.converter.LocalDateTimeConverter` のように `java.time.LocalDateTime` と `java.sql.Timestamp` とを相互に変換するコンバータを用意する必要があります。
 
 ``` java
 package lifelog.domain.model.converter;
@@ -297,7 +291,7 @@ public class EntryRepository {
 
 ## Service
 
-JAX-RS などのプレゼンテーション層から呼ばれることを想定した Service クラスです。実際の処理は先ほど作った EntryRepository に委譲しています。
+次に、JAX-RS などのプレゼンテーション層から呼ばれることを想定した Service クラスとして `lifelog.domain.service.EntryService` を作成します。実際の処理は先ほど作った EntryRepository に委譲しています。
 
 また、クラスレベルで `javax.transaction.Transactional` を設定しているため、すべてのメソッドにおいてトランザクションが走ります。
 
@@ -344,7 +338,7 @@ public class EntryService {
 
 ## Resource
 
-JAX-RS のリソースクラスとして `lifelog.api.EntryController` として作成します。JSON でリクエストを受け付け(javax.ws.rs.Consumes)、レスポンス(javax.ws.rs.Produces)を行います。また、CRUD 操作の実体は EntryService クラスに処理を委譲しています。
+JAX-RS のリソースクラスとして `lifelog.api.EntryController` を作成します。JSON でリクエストを受け付け(javax.ws.rs.Consumes)、レスポンス(javax.ws.rs.Produces)を行います。また、CRUD 操作の実体は EntryService クラスに処理を委譲しています。
 
 ``` java
 package lifelog.api;
@@ -380,7 +374,7 @@ public class EntryController {
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public List<EntryResponse> findALL() {
+  public List<EntryResponse> findAll() {
     List<Entry> allEntries = entryService.findAll();
     return allEntries.stream()
       .map(EntryResponse::from)
@@ -530,7 +524,7 @@ public class EntryResponse implements Serializable {
 
 ## WildFly Swarm 固有クラスによるアプリケーションの設定
 
-ここまではふつうの Java EE アプリケーション開発という感じでした。最後に Hello World の時と同様、WildFly Swarm 固有のクラスとして WildFly の起動からアプリケーションのデプロイまでを表現する Bootstrap クラスを作成します。
+ここまではふつうの Java EE アプリケーション開発という感じでした。最後に Hello World の時と同様、WildFly Swarm 固有のクラスとして WildFly の起動からアプリケーションのデプロイまでを表現する `wildflyswarm.Bootstrap` クラスを作成します。
 
 ``` java
 package wildflyswarm;
@@ -688,7 +682,7 @@ public class Bootstrap {
 ではビルド及び実行してみます。
 
 ``` sh
-$ mvn clean package && java -jar target/lifelog-swarm.jar
+$ ./mvnw clean package && java -jar target/lifelog-swarm.jar
 ```
 
 とりあえず全件取得。

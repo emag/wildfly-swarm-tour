@@ -3,19 +3,19 @@
   "root": "./docs",
   "variables": {
     "versions": {
-      "swarm": "2016.10.0",
+      "swarm": "2016.11.0",
       "jdk": "8",
       "maven": "3.3.9",
-      "postgresql": "9.5.4",
-      "postgresql_jdbc": "9.4.1211",
+      "postgresql": "9.6.1",
+      "postgresql_jdbc": "9.4.1212",
       "keycloak": "2.1.0.Final",
       "docker": "1.12.1",
-      "docker_compose": "1.8.0",
+      "docker_compose": "1.8.1",
       "lombok": "1.16.10",
-      "resteasy": "3.1.0.Beta2",
+      "resteasy": "3.1.0.CR3",
       "arquillian": "1.1.10.Final",
       "maven_failsafe_plugin": "2.19.1",
-      "docker_maven_plugin": "0.16.2"
+      "docker_maven_plugin": "0.17.2"
     }
   }
 }
