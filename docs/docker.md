@@ -107,7 +107,7 @@ $ docker rm -f lifelog
 
 ## PostgreSQL、Keycloak Server とのコンテナ間通信
 
-今までデータソース設定の接続 URL や keycloak.json 中の Keycloak Server の URL は Docker コンテナに対してホストからポートフォワードした `localhost:<port>` に決め打ちでした。ローカルでやっている分にはいいのですが、運用環境などでは別の IP アドレス(またはホスト名)であったりポート番号になるでしょう。
+今までデータソース設定の接続 URL や keycloak.json 中の Keycloak Server の URL は Docker コンテナに対してホストからポートフォワードした `localhost:<port>` に決め打ちでした。ローカルで開発している分にはいいのですが、運用環境などでは別の IP アドレス(またはホスト名)であったりポート番号になるでしょう。
 
 Docker コンテナは同じホスト上では `--link <コンテナIDまたは名前>:<適当な名前>` オプションを使うと、その指定したコンテナの EXPOSE したポートやコンテナの IP アドレスを環境変数として取得することができます。
 
@@ -133,6 +133,7 @@ DB_PORT_5432_TCP_PORT=5432
 よって、`--link` をつけて起動するアプリケーション(lifelog)側でこの環境変数を読めばよいということになります。
 
 > 別ホストの場合は `docker run` に `-e` オプションで環境変数を渡せるので、`-e DB_PORT_5432_TCP_ADDR=db.server` などとします。
+> もっと大規模になれば Docker Swarm や Kubernetes などを使ってオーケストレーションするか、または Docker に対応した PaaS 環境などを利用することになるかと思います。
 
 というわけで、環境変数が与えられた場合はそちらを利用するように PostgreSQL と Keycloak Server の URL の設定部分を変更します。
 
@@ -252,7 +253,7 @@ http://docs.docker.com/compose/install/
 docker-compose version {{book.versions.docker_compose}}, build &lt;some number&gt;
 </code></pre>
 
-次に、以下のような `docker-compose.yml` という設定ファイルを用意します。
+次に、以下のような `docker-compose.yml` という設定ファイルをプロジェクト直下に用意します。
 
 `docker run` するときの情報を並べただけって感じですね。
 
@@ -281,7 +282,7 @@ lifelog-auth:
   command: -b 0.0.0.0 -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/tmp/project/lifelog.json
 </code></pre>
 
-まぎらわしいので前に手動で上げた lifelog/lifelog-db/lifelog-auth コンテナは削除しておきましょう。
+まぎらわしいので前に手動で上げた lifelog/lifelog-db/lifelog-auth コンテナは止めておくか削除しておきましょう。
 
 コンテナの起動は以下のように行います。以下で全部のコンテナが起動します。`-d` をつけない場合はフォアグラウンドです。
 
@@ -295,7 +296,7 @@ $ docker-compose up -d
 `-d` をつけるとデーモンとして起動します。ちゃんと起動してるか気になる場合は以下で全コンテナを混ぜたログが出ます。
 
 ``` sh
-$ docker-compose -f logs
+$ docker-compose logs -f
 ```
 
 コンテナの停止は以下です。
