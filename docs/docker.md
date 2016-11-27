@@ -184,7 +184,7 @@ private static String authServerUrl() {
   String urlFromEnv = System.getenv("AUTH_PORT_8080_TCP_ADDR") + ":" + System.getenv("AUTH_PORT_8080_TCP_PORT");
 
   return urlFromEnv.equals("null:null")
-    ? System.getProperty("swarm.auth.server.url", "http://localhost:18080/auth")
+    ? System.getProperty("auth.url", "http://localhost:18080/auth")
     : "http://" + urlFromEnv +  "/auth";
 }
 ```

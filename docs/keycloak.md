@@ -169,7 +169,7 @@ private static void replaceKeycloakJson(Archive deployment) {
   try (BufferedReader reader =
          new BufferedReader(new InputStreamReader(keycloakJson.getAsset().openStream()))) {
     reader.lines().forEach(line -> {
-      line = line.replace("change_me", System.getProperty("swarm.auth.server.url", "http://localhost:18080/auth"));
+      line = line.replace("change_me", System.getProperty("auth.url", "http://localhost:18080/auth"));
       sb.append(line).append("\n");
     });
   } catch (IOException e) {
