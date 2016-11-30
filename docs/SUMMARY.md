@@ -5,6 +5,7 @@
 * [ソースコード](code.md)
 * [WildFly Swarm とは](what-is-wildfly-swarm.md)
 * [Hello, WildFly Swarm!](hello-wildfly-swarm.md)
+* [アプリケーション構成概要](app-outline.md)
 * [CRUD アプリの作成](crud-app.md)
 * [Arquillian を用いた Integration Test](arquillian.md)
 * [PostgreSQL の利用](postgresql.md)
