@@ -116,6 +116,9 @@ $ TOKEN=`echo $RESULT | sed 's/.*access_token":"//g' | sed 's/".*//g'`
 
 RESULT では `curl` として用意しておいたクライアント id でトークンを取りに行っています。この際 lifelog realm として、user1/password1 というユーザ名/パスワードをもったユーザがいるため、この情報を利用しています。RESULT として入っている情報はいろいろプロパティがついていますが、認証に必要なのは `access_token` のみなので、これだけもらって TOKEN にしまっています。
 
+> realm は Keycloak での認証の単位です。ここでは　lifelog という realm を作っておきました。
+> lifelog realm の内容は lifelog.json 内で定義されており、user1 の存在も確認できます。
+
 あらためて Authorization ヘッダにトークンを渡して POST します。
 
 ``` sh
