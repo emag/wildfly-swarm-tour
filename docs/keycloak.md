@@ -337,3 +337,22 @@ $ ./mvnw clean verify \
 ```
 
 うまくいきました? 余裕があればトークンなしや不正なトークンでリクエストすると 401 が出ることを確認するテストをしてみてもいいですね。
+
+## 注意点
+
+docker-maven-plugin の設定では、以下のように Keycloak Server が起動したことを表す `WFLYSRV0025` を含むログが出力されるまで待つようにしています。
+
+``` xml
+<wait>
+  <log>WFLYSRV0025</log>
+  <!-- 単位は ミリ秒 -->
+  <time>20000</time>
+</wait>
+```
+
+ここではタイムアウト値として `<time>` 要素に 20000 ミリ秒設定しているのですが、もし この時間以内に起動しないと以下のようなエラーとなります。
+
+<pre><code class="lang-sh">[ERROR] DOCKER> [jboss/keycloak:{{book.versions.keycloak}}] "lifelog-auth": Timeout after 20071 ms while waiting on log out 'WFLYSRV0025'
+</code></pre>
+
+上記のようなエラーが出たら、`<time>` 要素の値を 60000 など増やしてみてください。
