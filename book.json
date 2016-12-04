@@ -10,7 +10,7 @@
       "postgresql": "9.6.1",
       "postgresql_jdbc": "9.4.1212",
       "keycloak": "2.1.0.Final",
-      "docker": "1.12.1",
+      "docker": "1.12.3",
       "docker_compose": "1.9.0",
       "lombok": "1.16.10",
       "resteasy": "3.1.0.CR3",
