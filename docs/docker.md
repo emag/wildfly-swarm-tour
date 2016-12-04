@@ -72,16 +72,15 @@ emag/lifelog  latest  544dbb966fa0  37 minutes ago  509.6 MB
 $ docker run -it -d \
   --name lifelog  \
   -v `pwd`:/tmp/project \
-  -e _JAVA_OPTIONS="-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml" \
   -p 8080:8080 \
-  emag/lifelog
+  emag/lifelog -Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml
 ```
 
 * -d: デーモンとして起動
 * --name: コンテナに名前をつける場合指定。ここでは lifelog
 * -v: `<host_path>:<container_path>` という書式でホストの `<host_path>` を `<container_path>` にマウント
 * -p: 8080:8080 を指定することで、ローカルホスト(Docker ホスト)の 8080 ポートを Docker コンテナの 8080 ポートにポートフォワード
-* emag/lifelog: イメージを指定
+* emag/lifelog: イメージを指定。以降に指定した値は ENTRYPOINT に指定したコマンドのオプションのように扱えます。
 
 `docker ps` コマンドで、起動中のコンテナを確認できます。以下のように表示されていれば OK です。いつものように curl でアクセスしてみてください。
 
@@ -224,11 +223,10 @@ PostgreSQL と Keycloak Server のコンテナをそれぞれ lifelog-db、lifel
 $ docker run -it -d \
   --name lifelog  \
   -v `pwd`:/tmp/project \
-  -e _JAVA_OPTIONS="-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml -Dswarm.project.stage=production" \
   --link lifelog-db:db \
   --link lifelog-auth:auth \
   -p 8080:8080 \
-  emag/lifelog
+  emag/lifelog -Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml -Dswarm.project.stage=production
 ```
 
 `docker logs -f lifelog` とすると lifelog のログが確認できます。ログ中にあるコネクションの URL が、以下のように環境変数から得られたコンテナの IP アドレスに設定されていればオッケーです。
@@ -288,13 +286,12 @@ docker-compose version {{book.versions.docker_compose}}, build &lt;some number&g
   image: emag/lifelog
   volumes:
     - .:/tmp/project
-  environment:
-    _JAVA_OPTIONS: "-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml -Dswarm.project.stage=production"
   links:
     - lifelog-db:db
     - lifelog-auth:auth
   ports:
     - 8080:8080
+  command: ["-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml", "-Dswarm.project.stage=production"]
 
 lifelog-db:
   image: postgres:{{book.versions.postgresql}}
@@ -306,7 +303,7 @@ lifelog-auth:
   image: jboss/keycloak:{{book.versions.keycloak}}
   volumes:
     - .:/tmp/project
-  command: -b 0.0.0.0 -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/tmp/project/lifelog.json
+  command: ["-b 0.0.0.0", "-Dkeycloak.migration.action=import", "-Dkeycloak.migration.provider=singleFile", "-Dkeycloak.migration.file=/tmp/project/lifelog.json"]
 </code></pre>
 
 まぎらわしいので前に手動で上げた lifelog/lifelog-db/lifelog-auth コンテナは止めておくか削除しておきましょう。
