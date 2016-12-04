@@ -66,80 +66,50 @@ https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/pos
 
 <pre><code class="lang-xml">&lt;properties&gt;
   [...]
+  &lt;!-- 追記 ここから --&gt;
   &lt;version.postgresql-jdbc&gt;{{book.versions.postgresql_jdbc}}&lt;/version.postgresql-jdbc&gt;
+  &lt;!-- 追記 ここまで --&gt;
   [...]
 &lt;/properties&gt;
 
 [...]
 
-&lt;dependency&gt;
-  &lt;groupId&gt;org.postgresql&lt;/groupId&gt;
-  &lt;artifactId&gt;postgresql&lt;/artifactId&gt;
-  &lt;version&gt;${version.postgresql-jdbc}&lt;/version&gt;
-&lt;/dependency&gt;
+&lt;dependencies&gt;
+  [...]
+  &lt;!-- 追記 ここから --&gt;
+  &lt;dependency&gt;
+    &lt;groupId&gt;org.postgresql&lt;/groupId&gt;
+    &lt;artifactId&gt;postgresql&lt;/artifactId&gt;
+    &lt;version&gt;${version.postgresql-jdbc}&lt;/version&gt;
+  &lt;/dependency&gt;
+  &lt;!-- 追記 ここまで --&gt;
+  [...]
+&lt;/dependencies&gt;
 </code></pre>
 
-次に、後述する PostgreSQL JDBC ドライバ用の module.xml で `${version.postgresql-jdbc}` の値が上書きされるようにリソース処理を設定しています。
-
-``` xml
-<build>
-  <finalName>${project.artifactId}</finalName>
-
-  <resources>
-    <resource>
-      <directory>src/main/resources</directory>
-      <filtering>true</filtering>
-    </resource>
-  </resources>
-  [...]
-</build>
-```
-
-次に、PostgreSQL JDBC ドライバの module.xml を `src/main/resources/modules/org/postgresql/main/module.xml` に以下内容で配置します。
-
-> この module.xml は WildFly 独自のもので、モジュールクラスローディングをするために必要です。
-
-``` xml
-<?xml version="1.0" ?>
-<module xmlns="urn:jboss:module:1.3" name="org.postgresql">
-  <resources>
-    <artifact name="org.postgresql:postgresql:${version.postgresql-jdbc}"/>
-  </resources>
-
-  <dependencies>
-    <module name="javax.api"/>
-    <module name="javax.transaction.api"/>
-  </dependencies>
-</module>
-```
-
-`${version.postgresql-jdbc}` の部分はビルド時に置換されます。
-
 次に、システムプロパティの値によって H2 と PostgreSQL を切り替えられるようにする部分です。
-
-まず `lifelog-project-stages.yml` というファイルを以下の内容で適当なパス(ここではプロジェクト直下)に配置します。
+`lifelog-project-stages.yml` というファイルを以下の内容で適当なパス(ここではプロジェクト直下)に配置します。
 
 ``` yml
-database:
-  driver:
-    name: "h2"
-  connection:
-    url: "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
-  userName: "sa"
-  password: "sa"
+swarm:
+  datasources:
+    data-sources:
+      lifelogDS:
+        driver-name: h2
+        connection-url: jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=TRUE
+        user-name: sa
+        password: sa
 ---
 project:
   stage: production
-database:
-  driver:
-    name: "postgresql"
-    className: "org.postgresql.Driver"
-    xaDatasourceClass: "org.postgresql.xa.PGXADataSource"
-    moduleName: "org.postgresql"
-  connection:
-    url: "jdbc:postgresql://localhost:5432/lifelog"
-  userName: "lifelog"
-  password: "lifelog"
+swarm:
+  datasources:
+    data-sources:
+      lifelogDS:
+        driver-name: postgresql
+        connection-url: jdbc:postgresql://localhost:5432/lifelog
+        user-name: lifelog
+        password: lifelog
 ```
 
 `project: stage:` の部分でステージを指定し、各ステージは `---` で区切ります。一番上のように何も指定しない場合は default ステージとみなされます。
@@ -148,81 +118,23 @@ database:
 
 https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.versions.swarm}}/configuration/project_stages.html
 
-> なお、`project-stages.yml` という名前にした場合、このファイルがモジュール内やアプリケーションのクラスパスに存在すると自動的に読み込まれますが、値を変更するたびにビルドし直すのも面倒ですので外出ししています。また、java コマンド実行時のカレントパスにあった場合も読まれますが、Arquillian 実行時はカレントパスが変わるため、自分で指定する方が無難です。
+この設定によって、データソースにおける H2 ないし PostgreSQL の設定が起動時にどのステージを選んだかで切り替わります。
+また、上記のような `swarm: datasources: ` と渡した場合、WildFly Swarm がこの値を DatasourcesFraction の設定を行ってくれるため、
+前章までで設定していた `wildflyswarm.LifelogContainer` クラスは不要になります。
 
-次に `lifelog-project-stages.yml` をもとに DatasourcesFraction を組み立てるクラス(LifeLogConfiguration)を用意します。これも別に用意せずに LifeLogContainer にベタ書きでもいいですが、今後 Fraction の設定も少し増えるのでわけておきます。ついでに JPAFraction を提供するメソッドも作っておきました。
-
-``` java
-package wildflyswarm;
-
-import org.wildfly.swarm.Swarm;
-import org.wildfly.swarm.datasources.DatasourcesFraction;
-import org.wildfly.swarm.jpa.JPAFraction;
-
-public class LifeLogConfiguration {
-
-  private Swarm swarm;
-
-  LifeLogConfiguration(Swarm swarm) {
-    this.swarm = swarm;
-  }
-
-  DatasourcesFraction datasourcesFraction(String datasourceName) {
-    DatasourcesFraction datasourcesFraction = new DatasourcesFraction()
-      .dataSource(datasourceName, (ds) -> ds
-        .driverName(resolve("database.driver.name"))
-        .connectionUrl(resolve("database.connection.url"))
-        .userName(resolve("database.userName"))
-        .password(resolve("database.password"))
-      );
-
-    // production の場合は合わせて JDBC ドライバの設定もしておく
-    if(swarm.stageConfig().getName().equals("production")) {
-      datasourcesFraction.jdbcDriver("postgresql", (d) -> d
-        .driverClassName(resolve("database.driver.className"))
-        .xaDatasourceClass(resolve("database.driver.xaDatasourceClass"))
-        .driverModuleName(resolve("database.driver.moduleName"))
-      );
-    }
-
-    return datasourcesFraction;
-  }
-
-  JPAFraction jpaFraction(String datasourceName) {
-    return new JPAFraction()
-      .defaultDatasource("jboss/datasources/" + datasourceName);
-  }
-
-  private String resolve(String key) {
-    return swarm.stageConfig().resolve(key).getValue();
-  }
-
-}
-```
-
-private メソッドの resolve(String key) が肝のところです。`swarm.stageConfig().resolve(key).getValue()` の key は `lifelog-project-stages.yml` の各キーをピリオド区切りで渡します。例えば `database: connection: url` なら `database.connection.url` です。
-
-最後に LifeLogConfiguration を利用するように LifeLogContainer を変更します。
+`wildflyswarm.LifelogContainer` クラスを削除し、`wildflyswarm.Bootstrap` クラスを以下のように修正します。
 
 ``` java
 package wildflyswarm;
 
 import org.wildfly.swarm.Swarm;
 
-public class LifeLogContainer {
+public class Bootstrap {
 
-  private static final String DATASOURCE_NAME = "lifelogDS";
-
-  public static Swarm newContainer(String[] args) throws Exception {
-    Swarm swarm = new Swarm(args);
-
-    LifeLogConfiguration configuration = new LifeLogConfiguration(swarm);
-
-    swarm
-      .fraction(configuration.datasourcesFraction(DATASOURCE_NAME))
-      .fraction(configuration.jpaFraction(DATASOURCE_NAME));
-
-    return swarm;
+  public static void main(String[] args) throws Exception {
+    new Swarm(args)
+      .start()
+      .deploy(LifeLogDeployment.deployment());
   }
 
 }
@@ -252,17 +164,10 @@ public class LifeLogContainer {
     │   │   │           └── EntryService.java
     │   │   └── wildflyswarm
     │   │       ├── Bootstrap.java
-    │   │       ├── LifeLogConfiguration.java
-    │   │       ├── LifeLogContainer.java
     │   │       └── LifeLogDeployment.java
     │   └── resources
-    │       ├── META-INF
-    │       │   └── persistence.xml
-    │       └── modules
-    │           └── org
-    │               └── postgresql
-    │                   └── main
-    │                       └── module.xml
+    │       └── META-INF
+    │           └── persistence.xml
     └── test
         └── java
             └── lifelog
@@ -270,7 +175,9 @@ public class LifeLogContainer {
                     └── EntryControllerIT.java
 ```
 
-ここまで出来て、PostgreSQL も起動していることも確認したうえで lifelog をビルド、実行します。ステージ用ファイルとステージの指定はそれぞれシステムプロパティ `swarm.project.stage.file`　と `swarm.project.stage` を渡します。なお、ファイルの指定にはプロトコルを渡す必要があります。
+ここまで出来て、PostgreSQL も起動していることも確認したうえで lifelog をビルド、実行します。
+ステージ用ファイルとステージの指定はそれぞれシステムプロパティ `swarm.project.stage.file`　と `swarm.project.stage` を渡します。
+なお、ファイルの指定にはプロトコルを渡す必要があります。
 
 ``` sh
 $ ./mvnw clean package \
@@ -281,16 +188,26 @@ $ ./mvnw clean package \
 
 POST したり psql でデータベースの中を見たりして、実際に PostgreSQL が使われていることを確認してみてください。
 
+> なおこのステージ切替用の設定ファイルですが、`project-stages.yml` という名前にした場合、このファイルがモジュール内やアプリケーションのクラスパスに存在すると自動的に読み込まれます。
+> ここでは値を変更するたびにビルドし直すのも面倒ですので外出ししています。
+> また、java コマンド実行時のカレントパスにあった場合も読まれますが、Arquillian 実行時はカレントパスが変わるため、自分でパス指定する方が無難です。
+
 ## IT 用のステージを用意
 
-ついでに Arquillian でのテストも PostgreSQL を使ってやってみましょう。LifeLogConfiguration クラスを追加したため、EntryControllerIT を修正しておきます。
+ついでに Arquillian でのテストも PostgreSQL を使ってやってみましょう。LifeLogContainer クラスを削除したため、EntryControllerIT を修正しておきます。
 
 ``` java
 @Deployment(testable = false)
 public static JAXRSArchive createDeployment() {
-  // addClass(...) ではなく、addClasses(...) になっていることにも注意
-  return LifeLogDeployment.deployment().addClasses(LifeLogContainer.class, /*追加*/ LifeLogConfiguration.class);
+  // addClass() は不要
+  return LifeLogDeployment.deployment();
 }
+
+// 特別に設定することはないため、newContainer メソッドは削除
+// @CreateSwarm
+// public static Swarm newContainer() throws Exception {
+//   return LifeLogContainer.newContainer(new String[0]);
+// }
 ```
 
 上記の変更ができたら IT を実行します。
@@ -308,16 +225,14 @@ $ ./mvnw clean verify \
 ---
 project:
   stage: it
-database:
-  driver:
-    name: "postgresql"
-    className: "org.postgresql.Driver"
-    xaDatasourceClass: "org.postgresql.xa.PGXADataSource"
-    moduleName: "org.postgresql"
-  connection:
-    url: "jdbc:postgresql://localhost:15432/lifelog"
-  userName: "lifelog"
-  password: "lifelog"
+swarm:
+  datasources:
+    data-sources:
+      lifelogDS:
+        driver-name: postgresql
+        connection-url: jdbc:postgresql://localhost:15432/lifelog
+        user-name: lifelog
+        password: lifelog
 ---
 project:
   stage: production
@@ -461,24 +376,6 @@ PostgreSQL の Docker コンテナを実行するときの引数と対応して�
 その他の設定については以下ドキュメントを参考ください。
 
 https://dmp.fabric8.io/
-
-また、LifeLogConfiguration にも以下の修正が必要です。
-
-``` java
-DatasourcesFraction datasourcesFraction(String datasourceName) {
-  [...]
-
-  // stage が it の場合もドライバ設定を行う
-  if(swarm.stageConfig().getName().equals("it")
-    || swarm.stageConfig().getName().equals("production")) {
-    datasourcesFraction.jdbcDriver("postgresql", (d) -> d
-      [...]
-    );
-  }
-
-  return datasourcesFraction;
-}
-```
 
 ここまできたらステージおよびプロファイルに `it` を指定したうえで実行してみます。
 

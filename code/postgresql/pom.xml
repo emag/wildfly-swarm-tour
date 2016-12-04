@@ -5,7 +5,7 @@
 
   <groupId>wildflyswarmtour</groupId>
   <artifactId>lifelog</artifactId>
-  <version>2016.11.0</version>
+  <version>2016.12.0</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -16,7 +16,8 @@
 
     <version.wildfly-swarm>${project.version}</version.wildfly-swarm>
     <version.lombok>1.16.10</version.lombok>
-    <version.postgresql-jdbc>9.4.1211</version.postgresql-jdbc>
+    <version.h2>1.4.193</version.h2>
+    <version.postgresql-jdbc>9.4.1212</version.postgresql-jdbc>
 
     <version.arquillian>1.1.10.Final</version.arquillian>
     <version.resteasy>3.1.0.CR3</version.resteasy>
@@ -48,11 +49,25 @@
   <dependencies>
     <dependency>
       <groupId>org.wildfly.swarm</groupId>
-      <artifactId>jaxrs-cdi</artifactId>
+      <artifactId>jaxrs</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.wildfly.swarm</groupId>
+      <artifactId>cdi</artifactId>
     </dependency>
     <dependency>
       <groupId>org.wildfly.swarm</groupId>
       <artifactId>jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <version>${version.h2}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>${version.postgresql-jdbc}</version>
     </dependency>
 
     <dependency>
@@ -60,11 +75,6 @@
       <artifactId>lombok</artifactId>
       <version>${version.lombok}</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>${version.postgresql-jdbc}</version>
     </dependency>
 
     <dependency>
@@ -93,13 +103,6 @@
 
   <build>
     <finalName>${project.artifactId}</finalName>
-
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-        <filtering>true</filtering>
-      </resource>
-    </resources>
 
     <plugins>
       <plugin>

@@ -19,7 +19,8 @@ public class LifeLogDeployment {
 
     archive.addPackages(true, "lifelog");
     archive.addAsWebInfResource(
-      new ClassLoaderAsset("META-INF/persistence.xml", Bootstrap.class.getClassLoader()), "classes/META-INF/persistence.xml");
+      new ClassLoaderAsset("META-INF/persistence.xml", Bootstrap.class.getClassLoader()),
+      "classes/META-INF/persistence.xml");
 
     archive.as(Secured.class)
       .protect("/entries/*")

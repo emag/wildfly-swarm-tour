@@ -13,6 +13,5 @@ for project in $projects
 do
   cd $project
   ./mvnw versions:set -DnewVersion=$1
-  ./mvnw clean package
-  rm pom.xml.versionsBackup
+  ./mvnw clean package && ./mvnw versions:commit
 done

@@ -1,17 +1,13 @@
 package lifelog.api;
 
-import wildflyswarm.LifeLogConfiguration;
-import wildflyswarm.LifeLogContainer;
-import wildflyswarm.LifeLogDeployment;
 import lifelog.domain.model.Entry;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.wildfly.swarm.Swarm;
-import org.wildfly.swarm.arquillian.CreateSwarm;
 import org.wildfly.swarm.jaxrs.JAXRSArchive;
+import wildflyswarm.LifeLogDeployment;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -28,28 +24,17 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-// (1) Arquillian でテストする場合は以下のように @RunWith を指定
 @RunWith(Arquillian.class)
 public class EntryControllerIT {
 
-  @Deployment(testable = false) // (2) testable=false としておくと、コンテナの外からのテスト(@RunAsClient アノテーションも同様)
+  @Deployment(testable = false)
   public static JAXRSArchive createDeployment() {
-    // (3) デプロイするアーカイブ設定。LifeLogDeployment.deployment() をそのまま使う
-    return LifeLogDeployment.deployment().addClasses(LifeLogContainer.class, LifeLogConfiguration.class);
+    return LifeLogDeployment.deployment();
   }
 
-  // (4) @CreateSwarm を付与したメソッドでコンテナ設定を行う
-  @CreateSwarm
-  public static Swarm newContainer() throws Exception {
-    // コンテナの設定。LifeLogContainer.newContainer() をそのまま使う
-    return LifeLogContainer.newContainer(new String[0]);
-  }
-
-  // (5) testable = false の時に使う。ホスト名やポート番号がインジェクションされる
   @ArquillianResource
   private URI deploymentUri;
 
-  // (6) テスト内容
   @Test
   public void testWithLogin() {
     // Login

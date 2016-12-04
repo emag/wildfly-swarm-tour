@@ -72,17 +72,15 @@ emag/lifelog  latest  544dbb966fa0  37 minutes ago  509.6 MB
 $ docker run -it -d \
   --name lifelog  \
   -v `pwd`:/tmp/project \
-  -e _JAVA_OPTIONS="-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml" \
   -p 8080:8080 \
-  emag/lifelog
+  emag/lifelog -Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml
 ```
 
 * -d: デーモンとして起動
 * --name: コンテナに名前をつける場合指定。ここでは lifelog
 * -v: `<host_path>:<container_path>` という書式でホストの `<host_path>` を `<container_path>` にマウント
-* -e: コンテナに設定する環境変数
 * -p: 8080:8080 を指定することで、ローカルホスト(Docker ホスト)の 8080 ポートを Docker コンテナの 8080 ポートにポートフォワード
-* emag/lifelog: イメージを指定
+* emag/lifelog: イメージを指定。以降に指定した値は ENTRYPOINT に指定したコマンドのオプションのように扱えます。
 
 `docker ps` コマンドで、起動中のコンテナを確認できます。以下のように表示されていれば OK です。いつものように curl でアクセスしてみてください。
 
@@ -141,51 +139,73 @@ DB_PORT_5432_TCP_PORT=5432
 
 https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/docker
 
-PostgreSQL の URL は lifelog.LifeLogConfiguration で設定しているので、こちらを以下のように変更します。
+URL をシステムプロパティ `swarm.datasources.data-sources.lifelogDS.connection-url` および `auth.url` としてプログラム側で設定します。
+ここでは `wildlflyswarm.LifeLogConfigurationFromEnv` というクラスを以下のように作成しました。
+`setupUrl()` ではそれぞれ与えられた環境変数がそれっぽければ、各システムプロパティとして設定します。
 
 ``` java
-DatasourcesFraction datasourcesFraction(String datasourceName) {
-  return new DatasourcesFraction()
-   [...]
-   .dataSource(datasourceName, ds -> ds
-     .driverName(resolve("database.driver.name"))
-     .connectionUrl(databaseConnectionUrl()) // 変更
-     .userName(resolve("database.userName"))
-     .password(resolve("database.password"))
-   );
-}
+package wildflyswarm;
 
-// 追加
-private String databaseConnectionUrl() {
-  String urlFromEnv = System.getenv("DB_PORT_5432_TCP_ADDR") + ":" + System.getenv("DB_PORT_5432_TCP_PORT");
+public class LifeLogConfigurationFromEnv {
 
-  return urlFromEnv.equals("null:null")
-    ? resolve("database.connection.url")
-    : "jdbc:postgresql://" + urlFromEnv + "/lifelog";
+  public static void setupUrl(String property, String addr, String port, String format) {
+    if (! isValidUrl(addr, port)) return;
+
+    String urlFromEnv = getUrlFromEnv(addr, port);
+
+    System.setProperty(
+      property,
+      String.format(format, urlFromEnv));
+  }
+
+  private static boolean isValidUrl(String addr, String port) {
+    String addrFromEnv = System.getenv(addr);
+    if (addrFromEnv == null) return false;
+
+    String portFromEnv = System.getenv(port);
+    if (portFromEnv == null) return false;
+
+    return true;
+  }
+
+  private static String getUrlFromEnv(String addr, String port) {
+    return System.getenv(addr) + ":" + System.getenv(port);
+  }
+
 }
 ```
 
-Keycloak Server の URL は lifelog.LifeLogDeployment#replaceKeycloakJson で設定しているので、以下のようにします。
+次に、この LifeLogConfiguration#setUrl() を Bootstrap クラスで利用します。
 
 ``` java
-private static void replaceKeycloakJson(Archive deployment) {
-  [...]
-  try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
-    reader.lines().forEach(line -> {
-      line = line.replace("change_me", authServerUrl()); // 変更
-      sb.append(line).append("\n");
-    });
-  } catch (IOException e) {
-  [...]
-}
+package wildflyswarm;
 
-// 追加
-private static String authServerUrl() {
-  String urlFromEnv = System.getenv("AUTH_PORT_8080_TCP_ADDR") + ":" + System.getenv("AUTH_PORT_8080_TCP_PORT");
+import org.wildfly.swarm.Swarm;
 
-  return urlFromEnv.equals("null:null")
-    ? System.getProperty("auth.url", "http://localhost:18080/auth")
-    : "http://" + urlFromEnv +  "/auth";
+public class Bootstrap {
+
+  public static void main(String[] args) throws Exception {
+    // 追記ここから
+    LifeLogConfigurationFromEnv.setupUrl(
+      "swarm.datasources.data-sources.lifelogDS.connection-url",
+      "DB_PORT_5432_TCP_ADDR",
+      "DB_PORT_5432_TCP_PORT",
+      "jdbc:postgresql://%s/lifelog"
+    );
+
+    LifeLogConfigurationFromEnv.setupUrl(
+      "auth.url",
+      "AUTH_PORT_8080_TCP_ADDR",
+      "AUTH_PORT_8080_TCP_PORT",
+      "http://%s/auth"
+    );
+    // 追記ここまで
+
+    new Swarm(args)
+      .start()
+      .deploy(LifeLogDeployment.deployment());
+  }
+
 }
 ```
 
@@ -203,11 +223,16 @@ PostgreSQL と Keycloak Server のコンテナをそれぞれ lifelog-db、lifel
 $ docker run -it -d \
   --name lifelog  \
   -v `pwd`:/tmp/project \
-  -e _JAVA_OPTIONS="-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml -Dswarm.project.stage=production" \
   --link lifelog-db:db \
   --link lifelog-auth:auth \
   -p 8080:8080 \
-  emag/lifelog
+  emag/lifelog -Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml -Dswarm.project.stage=production
+```
+
+`docker logs -f lifelog` とすると lifelog のログが確認できます。ログ中にあるコネクションの URL が、以下のように環境変数から得られたコンテナの IP アドレスに設定されていればオッケーです。
+
+```
+swarm.datasources.data-sources.lifelogDS.connection-url = jdbc:postgresql://172.17.0.2:5432/lifelog
 ```
 
 今まで TOKEN を取得するのにポートフォワードしていた http://localhost:18080/auth を指していましたが、lifelog の keycloak.json ではもうこちらではなく Keycloak Server コンテナの IP アドレスを指しているため、取得時の URI を変える必要があります。
@@ -261,13 +286,12 @@ docker-compose version {{book.versions.docker_compose}}, build &lt;some number&g
   image: emag/lifelog
   volumes:
     - .:/tmp/project
-  environment:
-    _JAVA_OPTIONS: "-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml -Dswarm.project.stage=production"
   links:
     - lifelog-db:db
     - lifelog-auth:auth
   ports:
     - 8080:8080
+  command: ["-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml", "-Dswarm.project.stage=production"]
 
 lifelog-db:
   image: postgres:{{book.versions.postgresql}}
@@ -279,7 +303,7 @@ lifelog-auth:
   image: jboss/keycloak:{{book.versions.keycloak}}
   volumes:
     - .:/tmp/project
-  command: -b 0.0.0.0 -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/tmp/project/lifelog.json
+  command: ["-b 0.0.0.0", "-Dkeycloak.migration.action=import", "-Dkeycloak.migration.provider=singleFile", "-Dkeycloak.migration.file=/tmp/project/lifelog.json"]
 </code></pre>
 
 まぎらわしいので前に手動で上げた lifelog/lifelog-db/lifelog-auth コンテナは止めておくか削除しておきましょう。

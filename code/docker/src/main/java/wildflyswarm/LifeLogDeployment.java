@@ -19,7 +19,8 @@ public class LifeLogDeployment {
 
     archive.addPackages(true, "lifelog");
     archive.addAsWebInfResource(
-      new ClassLoaderAsset("META-INF/persistence.xml", Bootstrap.class.getClassLoader()), "classes/META-INF/persistence.xml");
+      new ClassLoaderAsset("META-INF/persistence.xml", Bootstrap.class.getClassLoader()),
+      "classes/META-INF/persistence.xml");
 
     archive.as(Secured.class)
       .protect("/entries/*")
@@ -42,21 +43,13 @@ public class LifeLogDeployment {
     try (BufferedReader reader =
            new BufferedReader(new InputStreamReader(keycloakJson.getAsset().openStream()))) {
       reader.lines().forEach(line -> {
-        line = line.replace("change_me", authServerUrl());
+        line = line.replace("change_me", System.getProperty("auth.url", "http://localhost:18080/auth"));
         sb.append(line).append("\n");
       });
     } catch (IOException e) {
       e.printStackTrace();
     }
     deployment.add(new ByteArrayAsset(sb.toString().getBytes()), keycloakPath);
-  }
-
-  private static String authServerUrl() {
-    String urlFromEnv = System.getenv("AUTH_PORT_8080_TCP_ADDR") + ":" + System.getenv("AUTH_PORT_8080_TCP_PORT");
-
-    return urlFromEnv.equals("null:null")
-      ? System.getProperty("auth.url", "http://localhost:18080/auth")
-      : "http://" + urlFromEnv +  "/auth";
   }
 
 }

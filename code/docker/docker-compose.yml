@@ -2,16 +2,15 @@ lifelog:
   image: emag/lifelog
   volumes:
     - .:/tmp/project
-  environment:
-    _JAVA_OPTIONS: "-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml -Dswarm.project.stage=production"
   links:
     - lifelog-db:db
     - lifelog-auth:auth
   ports:
     - 8080:8080
+  command: ["-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml", "-Dswarm.project.stage=production"]
 
 lifelog-db:
-  image: postgres:9.5.4
+  image: postgres:9.6.1
   environment:
     POSTGRES_USER: lifelog
     POSTGRES_PASSWORD: lifelog
@@ -20,4 +19,4 @@ lifelog-auth:
   image: jboss/keycloak:2.1.0.Final
   volumes:
     - .:/tmp/project
-  command: -b 0.0.0.0 -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/tmp/project/lifelog.json
+  command: ["-b 0.0.0.0", "-Dkeycloak.migration.action=import", "-Dkeycloak.migration.provider=singleFile", "-Dkeycloak.migration.file=/tmp/project/lifelog.json"]

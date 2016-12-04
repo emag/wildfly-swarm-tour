@@ -2,7 +2,6 @@ package wildflyswarm;
 
 import org.wildfly.swarm.Swarm;
 import org.wildfly.swarm.datasources.DatasourcesFraction;
-import org.wildfly.swarm.jpa.JPAFraction;
 
 public class LifeLogContainer {
 
@@ -15,10 +14,6 @@ public class LifeLogContainer {
         .connectionUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
         .userName("sa")
         .password("sa"))
-    );
-
-    swarm.fraction(new JPAFraction()
-      .defaultDatasource("jboss/datasources/lifelogDS")
     );
 
     return swarm;
