@@ -35,6 +35,7 @@ helloworld の時と同様に適当なディレクトリに移動し、こちら
 
     &lt;version.wildfly-swarm&gt;${project.version}&lt;/version.wildfly-swarm&gt;
     &lt;version.lombok&gt;{{book.versions.lombok}}&lt;/version.lombok&gt;
+    &lt;version.h2&gt;{{book.versions.h2}}&lt;/version.h2&gt;
   &lt;/properties&gt;
 
   &lt;dependencyManagement&gt;
@@ -53,11 +54,20 @@ helloworld の時と同様に適当なディレクトリに移動し、こちら
     &lt;!-- (1) --&gt;
     &lt;dependency&gt;
       &lt;groupId&gt;org.wildfly.swarm&lt;/groupId&gt;
-      &lt;artifactId&gt;jaxrs-cdi&lt;/artifactId&gt;
+      &lt;artifactId&gt;jaxrs&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;org.wildfly.swarm&lt;/groupId&gt;
+      &lt;artifactId&gt;cdi&lt;/artifactId&gt;
     &lt;/dependency&gt;
     &lt;dependency&gt;
       &lt;groupId&gt;org.wildfly.swarm&lt;/groupId&gt;
       &lt;artifactId&gt;jpa&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+      &lt;groupId&gt;com.h2database&lt;/groupId&gt;
+      &lt;artifactId&gt;h2&lt;/artifactId&gt;
+      &lt;version&gt;${version.h2}&lt;/version&gt;
     &lt;/dependency&gt;
 
     &lt;!-- (2) --&gt;
@@ -94,7 +104,9 @@ helloworld の時と同様に適当なディレクトリに移動し、こちら
 &lt;/project&gt;
 <code></pre>
 
-今回は JAX-RS と CDI、JPA を使えるようにしておきます(1)。また、サードパーティのライブラリを利用します(2)。なお、lombok 自体はコンパイル時のみにしか利用しないため(provided スコープ)、実際にアーカイブに含めないのであまり影響ありませんが、ランタイム時にも必要なライブラリがある場合は、後述する `Archive#addAllDependencies()` を Bootstrap クラスで設定します。
+今回は JAX-RS と CDI、JPA を使えるようにしておきます(1)。この章では組込みの H2 データベースを利用するため、その依存も追加しておきます。
+
+また、サードパーティのライブラリとして [Lombok](https://projectlombok.org/) を追加しています(2)。Lombok 自体はコンパイル時のみにしか利用しないため(provided スコープ)、実際にアーカイブに含めないのでこの依存性を追加する以外の処理は不要ですが、ランタイム時にも必要なライブラリがある場合は、後述する `Archive#addAllDependencies()` を Bootstrap クラスで設定します。
 
 では次からいろいろと作ってみましょう。
 
@@ -534,7 +546,6 @@ import org.jboss.shrinkwrap.api.asset.ClassLoaderAsset;
 import org.wildfly.swarm.Swarm;
 import org.wildfly.swarm.datasources.DatasourcesFraction;
 import org.wildfly.swarm.jaxrs.JAXRSArchive;
-import org.wildfly.swarm.jpa.JPAFraction;
 
 public class Bootstrap {
 
@@ -550,17 +561,13 @@ public class Bootstrap {
         .password("sa"))
     );
 
-    // (2) Default の Datasource を lifelogDS に設定
-    swarm.fraction(new JPAFraction()
-      .defaultDatasource("jboss/datasources/lifelogDS")
-    );
-
     JAXRSArchive archive = ShrinkWrap.create(JAXRSArchive.class);
-    // (3) lifelog パッケージ以下のクラスを再帰的にアーカイブに含める
+    // (2) lifelog パッケージ以下のクラスを再帰的にアーカイブに含める
     archive.addPackages(true, "lifelog");
-    // (4) persistence.xml をアーカイブに含める
+    // (3) persistence.xml をアーカイブに含める
     archive.addAsWebInfResource(
-      new ClassLoaderAsset("META-INF/persistence.xml", Bootstrap.class.getClassLoader()), "classes/META-INF/persistence.xml");
+      new ClassLoaderAsset("META-INF/persistence.xml", Bootstrap.class.getClassLoader()),
+      "classes/META-INF/persistence.xml");
 
     swarm
       .start()
@@ -570,10 +577,10 @@ public class Bootstrap {
 }
 ```
 
-(1) - (2) にデータソースおよび JPA 関係の設定を、(3) - (4) ではアプリケーションのアーカイブを作成しています。なおデータベースは H2 を利用します。このデータベースは `org.wildfly.swarm:jpa` を依存性に追加しておくと合わせて使えるようになります。
+(1) にデータソースの設定を、(2) および (3) ではアプリケーションのアーカイブを作成しています。(1) では JDBC ドライバそのものの設定はしていませんが、H2 の依存性を追加していることで WildFLy Swarm が自動的に設定を行います。
 
-> 先ほど pom.xml の設定を見ていた時にちょろっと話題に出しましたが、コンパイル時だけではなくランタイムにも必要なライブラリで、
-> かつ WildFly の module にも持ってなさそうなものがある場合は、Archive#addAllDependencies() を追加しておくとすべての依存性を追加してくれます。
+> 先ほど pom.xml の設定を見ていた時にちょろっと話題に出しましたが、コンパイル時だけではなくランタイムにも必要なライブラリ(マルチプロジェクトの依存先含む)で、
+> かつ WildFly の module にも持っていないものがある場合は、Archive#addAllDependencies() を追加しておくとすべての依存性を追加してくれますので便利です。
 
 ここでちょっとした機能分割をしておきます。上記の main() メソッドは WildFly の設定とデプロイするアプリケーションのアーカイブ設定が混ざっていますので、それぞれをわけておきます。別にわけなくてもいいのですが、役割がわかりやすくなるのと、このあと Arquillian を使ってテストするときに再利用できます。
 
@@ -584,7 +591,6 @@ package wildflyswarm;
 
 import org.wildfly.swarm.Swarm;
 import org.wildfly.swarm.datasources.DatasourcesFraction;
-import org.wildfly.swarm.jpa.JPAFraction;
 
 public class LifeLogContainer {
 
@@ -597,10 +603,6 @@ public class LifeLogContainer {
         .connectionUrl("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE")
         .userName("sa")
         .password("sa"))
-    );
-
-    swarm.fraction(new JPAFraction()
-      .defaultDatasource("jboss/datasources/lifelogDS")
     );
 
     return swarm;
@@ -625,7 +627,8 @@ public class LifeLogDeployment {
 
     archive.addPackages(true, "lifelog");
     archive.addAsWebInfResource(
-      new ClassLoaderAsset("META-INF/persistence.xml", Bootstrap.class.getClassLoader()), "classes/META-INF/persistence.xml");
+      new ClassLoaderAsset("META-INF/persistence.xml", Bootstrap.class.getClassLoader()),
+      "classes/META-INF/persistence.xml");
 
     return archive;
   }
