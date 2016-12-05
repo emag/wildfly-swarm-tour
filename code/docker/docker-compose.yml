@@ -19,4 +19,4 @@ lifelog-auth:
   image: jboss/keycloak:2.1.0.Final
   volumes:
     - .:/tmp/project
-  command: ["-b 0.0.0.0", "-Dkeycloak.migration.action=import", "-Dkeycloak.migration.provider=singleFile", "-Dkeycloak.migration.file=/tmp/project/lifelog.json"]
+  command: ["-b 0.0.0.0", "-Dkeycloak.migration.action=import", "-Dkeycloak.migration.provider=singleFile", "-Dkeycloak.migration.file=/tmp/project/lifelog-realm.json"]

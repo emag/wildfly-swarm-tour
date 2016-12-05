@@ -31,9 +31,9 @@ public class LifeLogDeployment {
     return archive;
   }
 
-  private static void replaceKeycloakJson(Archive deployment) {
+  private static void replaceKeycloakJson(Archive archive) {
     String keycloakPath = "WEB-INF/keycloak.json";
-    Node keycloakJson = deployment.get(keycloakPath);
+    Node keycloakJson = archive.get(keycloakPath);
     if (keycloakJson == null) {
       // FIXME keycloak.json は wildfly-swarm:run で読めない
       return;
@@ -49,7 +49,7 @@ public class LifeLogDeployment {
     } catch (IOException e) {
       e.printStackTrace();
     }
-    deployment.add(new ByteArrayAsset(sb.toString().getBytes()), keycloakPath);
+    archive.add(new ByteArrayAsset(sb.toString().getBytes()), keycloakPath);
   }
 
 }
