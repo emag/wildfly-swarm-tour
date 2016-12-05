@@ -140,6 +140,22 @@ public class Bootstrap {
 }
 ```
 
+また、EntryControllerIT も修正しておきます。
+
+``` java
+@Deployment(testable = false)
+public static JAXRSArchive createDeployment() {
+  // addClass() は不要
+  return LifeLogDeployment.deployment();
+}
+
+// 特別に設定することはないため、newContainer メソッドは削除
+// @CreateSwarm
+// public static Swarm newContainer() throws Exception {
+//   return LifeLogContainer.newContainer(new String[0]);
+// }
+```
+
 ここまででプロジェクト構成はおおよそ以下のようになります。
 
 ``` sh
@@ -194,23 +210,7 @@ POST したり psql でデータベースの中を見たりして、実際に Po
 
 ## IT 用のステージを用意
 
-ついでに Arquillian でのテストも PostgreSQL を使ってやってみましょう。LifeLogContainer クラスを削除したため、EntryControllerIT を修正しておきます。
-
-``` java
-@Deployment(testable = false)
-public static JAXRSArchive createDeployment() {
-  // addClass() は不要
-  return LifeLogDeployment.deployment();
-}
-
-// 特別に設定することはないため、newContainer メソッドは削除
-// @CreateSwarm
-// public static Swarm newContainer() throws Exception {
-//   return LifeLogContainer.newContainer(new String[0]);
-// }
-```
-
-上記の変更ができたら IT を実行します。
+ついでに Arquillian でのテストも PostgreSQL を使ってやってみましょう。
 
 ``` sh
 $ ./mvnw clean verify \
