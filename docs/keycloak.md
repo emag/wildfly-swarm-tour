@@ -18,7 +18,7 @@ Keycloak を利用した場合の大ざっぱな仕組みとしては以下の�
 * src/main/resources/keycloak.json
  * https://gist.githubusercontent.com/emag/c16eb10eed22d1cb944cecb4b7168dd4/raw/2b7104ae8b9428b85756cb92f7b2a5c5c09156e1/keycloak.json
 * lifelog.json(プロジェクト直下)
- * https://gist.githubusercontent.com/emag/c16eb10eed22d1cb944cecb4b7168dd4/raw/2b7104ae8b9428b85756cb92f7b2a5c5c09156e1/lifelog.json
+ * https://gist.githubusercontent.com/emag/c16eb10eed22d1cb944cecb4b7168dd4/raw/74e5c1272c5e12e205020a6e77b7f5c4ea73b9f7/lifelog-realm.json
 
 ご自分で設定ファイルを作成してみたい場合は [付録 Keycloak の設定](keycloak-settings.md) を参照ください。
 
@@ -39,7 +39,7 @@ https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.ver
   -p 18080:8080 \
   -v `pwd`:/tmp \
   jboss/keycloak:{{book.versions.keycloak}} \
-  -b 0.0.0.0 -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/tmp/lifelog.json
+  -b 0.0.0.0 -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/tmp/lifelog-realm.json
 </code></pre>
 
 Keycloak の Admin ユーザを admin/admin というユーザ名/パスワードで設定しています。また、ホストの 18080 ポートから -> コンテナの 8080 へポートフォワードしています。
@@ -139,7 +139,7 @@ project:
   stage: production
 [...]
 auth:
-  url: "http://localhost:18080/auth"
+  url: http://localhost:18080/auth
 ```
 
 次に、LifeLogDeployment を以下のように変更します。
@@ -160,9 +160,9 @@ public static JAXRSArchive deployment() {
   return archive;
 }
 
-private static void replaceKeycloakJson(Archive deployment) {
+private static void replaceKeycloakJson(Archive archive) {
   String keycloakPath = "WEB-INF/keycloak.json";
-  Node keycloakJson = deployment.get(keycloakPath);
+  Node keycloakJson = archive.get(keycloakPath);
   if (keycloakJson == null) {
     // FIXME keycloak.json は wildfly-swarm:run で読めない
     return;
@@ -178,7 +178,7 @@ private static void replaceKeycloakJson(Archive deployment) {
   } catch (IOException e) {
     e.printStackTrace();
   }
-  deployment.add(new ByteArrayAsset(sb.toString().getBytes()), keycloakPath);
+  archive.add(new ByteArrayAsset(sb.toString().getBytes()), keycloakPath);
 }
 ```
 
@@ -240,7 +240,7 @@ $ ./mvnw clean package \
             &lt;/bind&gt;
           &lt;/volumes&gt;
           &lt;cmd&gt;
-            -b 0.0.0.0 -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/tmp/lifelog.json
+            -b 0.0.0.0 -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/tmp/lifelog-realm.json
           &lt;/cmd&gt;
           &lt;wait&gt;
             &lt;log&gt;WFLYSRV0025&lt;/log&gt;
@@ -248,7 +248,7 @@ $ ./mvnw clean package \
           &lt;/wait&gt;
           &lt;log&gt;
             &lt;prefix&gt;LIFELOG_AUTH&lt;/prefix&gt;
-            &lt;color&gt;yellow&lt;/color&gt;
+            &lt;color&gt;cyan&lt;/color&gt;
           &lt;/log&gt;
         &lt;/run&gt;
       &lt;/image&gt;
