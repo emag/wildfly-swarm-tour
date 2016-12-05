@@ -303,7 +303,7 @@ lifelog-auth:
   image: jboss/keycloak:{{book.versions.keycloak}}
   volumes:
     - .:/tmp/project
-  command: ["-b 0.0.0.0", "-Dkeycloak.migration.action=import", "-Dkeycloak.migration.provider=singleFile", "-Dkeycloak.migration.file=/tmp/project/lifelog.json"]
+  command: ["-b 0.0.0.0", "-Dkeycloak.migration.action=import", "-Dkeycloak.migration.provider=singleFile", "-Dkeycloak.migration.file=/tmp/project/lifelog-realm.json"]
 </code></pre>
 
 まぎらわしいので前に手動で上げた lifelog/lifelog-db/lifelog-auth コンテナは止めておくか削除しておきましょう。
