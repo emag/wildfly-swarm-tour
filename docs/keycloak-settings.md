@@ -143,17 +143,17 @@ $ docker exec -it lifelog-auth-tmp /bin/bash
 ``` sh
 [in-container]
 $ /opt/jboss/keycloak/bin/standalone.sh -Djboss.socket.binding.port-offset=100 \
-  -Dkeycloak.migration.action=export -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/tmp/my-lifelog.json
+  -Dkeycloak.migration.action=export -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/tmp/my-lifelog-realm.json
 ```
 
 > 設定ファイルのエクスポートに Keyclaok Server の起動が必要なので、上記のようになっています。
 
 `WFLYSRV0025: Keycloak ...` と表示されたら Ctrl - C で Keycloak Server を停止します。ここまでできたら Ctrl-D でコンテナから抜けます。
 
-コンテナの /tmp 以下に `my-lifelog.json` というファイルができていますので、ホストから取得します(/path/to は適当に読み替え)。
+コンテナの /tmp 以下に `my-lifelog-realm.json` というファイルができていますので、ホストから取得します(/path/to は適当に読み替え)。
 
 ``` sh
-$ docker cp lifelog-auth-tmp:/tmp/my-lifelog.json /path/to/my-lifelog.json
+$ docker cp lifelog-auth-tmp:/tmp/my-lifelog-realm.json /path/to/my-lifelog-realm.json
 ```
 
 ここまでできたらこのコンテナは不要なので、削除しておきます。
@@ -162,12 +162,12 @@ $ docker cp lifelog-auth-tmp:/tmp/my-lifelog.json /path/to/my-lifelog.json
 $ docker rm -f lifelog-auth-tmp
 ```
 
-本編で Keycloak Server を起動する場合は、この my-lifelog.json を利用するようにします。
+本編で Keycloak Server を起動する場合は、この my-lifelog-realm.json を利用するようにします。
 
 <pre><code class="lang-sh">$ docker run -it -d \
   --name lifelog-auth \
   -p 18080:8080 \
   -v /path/to:/tmp/lifelog-auth \
   jboss/keycloak:{{book.versions.keycloak}} \
-  -b 0.0.0.0 -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/tmp/lifelog-auth/my-lifelog.json
+  -b 0.0.0.0 -Dkeycloak.migration.action=import -Dkeycloak.migration.provider=singleFile -Dkeycloak.migration.file=/tmp/lifelog-auth/my-lifelog-realm.json
 </code></pre>

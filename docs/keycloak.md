@@ -13,11 +13,11 @@ Keycloak を利用した場合の大ざっぱな仕組みとしては以下の�
 1. Keycloak サーバに TOKEN をもらう
 1. 1 でもらった TOKEN をヘッダにつけて lifelog の API をリクエストする
 
-ここではすでに用意した Keycloak の設定ファイル(keycloak.json/lifelog.json)を利用しますので、以下からダウンロードしそれぞれ配置してください。
+ここではすでに用意した Keycloak の設定ファイル(keycloak.json/lifelog-realm.json)を利用しますので、以下からダウンロードしそれぞれ配置してください。
 
 * src/main/resources/keycloak.json
  * https://gist.githubusercontent.com/emag/c16eb10eed22d1cb944cecb4b7168dd4/raw/2b7104ae8b9428b85756cb92f7b2a5c5c09156e1/keycloak.json
-* lifelog.json(プロジェクト直下)
+* lifelog-realm.json(プロジェクト直下)
  * https://gist.githubusercontent.com/emag/c16eb10eed22d1cb944cecb4b7168dd4/raw/74e5c1272c5e12e205020a6e77b7f5c4ea73b9f7/lifelog-realm.json
 
 ご自分で設定ファイルを作成してみたい場合は [付録 Keycloak の設定](keycloak-settings.md) を参照ください。
@@ -44,7 +44,7 @@ https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.ver
 
 Keycloak の Admin ユーザを admin/admin というユーザ名/パスワードで設定しています。また、ホストの 18080 ポートから -> コンテナの 8080 へポートフォワードしています。
 
-一番最後に渡している lifelog.json というのはこちらで用意した Keycloak の設定ファイルです。起動時にインポートすることができます。
+一番最後に渡している lifelog-realm.json というのはこちらで用意した Keycloak の設定ファイルです。起動時にインポートすることができます。
 
 ## Keycloak による認証を用いた API へのアクセス
 
@@ -117,7 +117,7 @@ $ TOKEN=`echo $RESULT | sed 's/.*access_token":"//g' | sed 's/".*//g'`
 RESULT では `curl` として用意しておいたクライアント id でトークンを取りに行っています。この際 lifelog realm として、user1/password1 というユーザ名/パスワードをもったユーザがいるため、この情報を利用しています。RESULT として入っている情報はいろいろプロパティがついていますが、認証に必要なのは `access_token` のみなので、これだけもらって TOKEN にしまっています。
 
 > realm は Keycloak での認証の単位です。ここでは　lifelog という realm を作っておきました。
-> lifelog realm の内容は lifelog.json 内で定義されており、user1 の存在も確認できます。
+> lifelog realm の内容は lifelog-realm.json 内で定義されており、user1 の存在も確認できます。
 
 あらためて Authorization ヘッダにトークンを渡して POST します。
 
