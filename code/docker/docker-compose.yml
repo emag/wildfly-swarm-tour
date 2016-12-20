@@ -7,7 +7,7 @@ lifelog:
     - lifelog-auth:auth
   ports:
     - 8080:8080
-  command: ["-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml", "-Dswarm.project.stage=production"]
+  command: ["-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml", "-Dswarm.project.stage=docker"]
 
 lifelog-db:
   image: postgres:9.6.1
