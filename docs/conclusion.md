@@ -20,6 +20,8 @@ http://wildfly-swarm.io/tutorial/
 
 * [wildfly-swarm.io](http://wildfly-swarm.io/)
  * 各種情報(リリースアナウンスなどのブログ、GitHub やドキュメントのリンク、コミュニティや開発メンバの過去講演情報など)がのっている公式サイトです。
+* [WildFly Swarm HOWTO](https://howto.wildfly-swarm.io/)
+ * 公式 Tips 集です。
 * [Docker実践入門
 ――Linuxコンテナ技術の基礎から応用まで](http://gihyo.jp/book/2015/978-4-7741-7654-3)
  * Docker の操作を一通り学ぶのにぴったりです。
