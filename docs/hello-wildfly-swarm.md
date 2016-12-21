@@ -365,6 +365,8 @@ $ curl localhost:8080/helloworld/hello
 
 実は WildFly Swarm では以下サンプルのように war でもパッケージングできます。
 
+https://github.com/wildfly-swarm/wildfly-swarm-examples/tree/{{book.versions.swarm}}/jaxrs/jaxrs
+
 使い分けの指針については以下公式ブログを参照ください。
 
 http://wildfly-swarm.io/posts/to-war-or-jar/
