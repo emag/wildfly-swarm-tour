@@ -35,8 +35,61 @@ Maven Warpper でなく、ご自身でインストールした Maven を利用�
 
 Docker のセットアップについては下記公式サイトや[日本語化プロジェクト](http://docs.docker.jp/)、各種 Web 情報をご覧ください。
 
-* [Windows](http://docs.docker.com/windows/started/)
-* [Mac OS X](http://docs.docker.com/mac/started/)
-* [Linux](https://docs.docker.com/engine/installation/#/on-linux)
+* https://docs.docker.com/engine/getstarted/step_one/
 
 Docker セットアップ後は sudo なしで docker コマンドが叩けるよう、ユーザを `docker` グループに入れておくと便利です。
+
+## ハンズオン向け事前準備
+
+本資料は基本的に独習可能なものを目指していますが、ハンズオンなどワークショップでもお使いいただけます(利用にあたって筆者に事前許諾は不要です)。
+
+### インストールするもの
+
+事前に以下のものを PC にインストールしてください。
+
+* 任意の OS
+* JDK 8(なるべく新しいバージョン)
+* 任意のエディタ/IDE
+* curl コマンド
+    * バイナリは https://curl.haxx.se/download.html からダウンロードできます
+* jq コマンド
+   * バイナリは https://stedolan.github.io/jq/ からダウンロードできます
+* Docker
+    * インストールは https://docs.docker.com/engine/getstarted/step_one/ を参考ください
+        * 日本語化プロジェクト: http://docs.docker.jp/engine/installation/toc.html
+* Docker Compose
+    * インストールは https://docs.docker.com/compose/install/ を参考ください
+        * 日本語化プロジェクト: http://docs.docker.jp/compose/install.html
+
+### ライブラリのインストールおよび Docker イメージの pull
+
+WildFly Swarm は非常に多くのライブラリからなるため、
+ハンズオン中には最低限のダウンロードで済むよう、事前に一通りウォームアップしていただければと思います。
+また、同様に Docker イメージの pull も実施ください。
+
+以下を実施いただくと、一通り必要な資材がダウンロードされます。
+
+まず、適当なディレクトリにハンズオン用の資料をダウンロードし展開後、`docker` ディレクトリに移動します。
+
+<pre><code class="lang-sh">$ curl -sL https://github.com/emag/wildfly-swarm-tour/archive/{{book.versions.swarm}}.zip -o /tmp/wildfly-swarm-tour.zip \
+  && unzip -q /tmp/wildfly-swarm-tour.zip -d /tmp/ \
+  && cd /tmp/wildfly-swarm-tour-{{book.versions.swarm}}/code/docker/
+</code></pre>
+
+必要なライブラリのインストール及び、Docker イメージの一部を pull します(その1)。
+
+``` sh
+$ ./mvnw clean package && docker build -t test/lifelog . && docker rmi -f test/lifelog
+```
+
+必要なライブラリのインストール及び、Docker イメージの一部を pull します(その2)。
+
+``` sh
+$ ./mvnw clean verify \
+  -Dswarm.project.stage.file=file://`pwd`/project-stages.yml \
+  -Dswarm.project.stage=it \
+  -Dauth.url=http://localhost:28080/auth \
+  -Pit
+```
+
+これで準備は完了です。

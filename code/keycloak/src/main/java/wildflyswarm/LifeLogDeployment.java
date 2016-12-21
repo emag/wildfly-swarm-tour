@@ -1,16 +1,9 @@
 package wildflyswarm;
 
-import org.jboss.shrinkwrap.api.Archive;
-import org.jboss.shrinkwrap.api.Node;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.ByteArrayAsset;
 import org.jboss.shrinkwrap.api.asset.ClassLoaderAsset;
 import org.wildfly.swarm.jaxrs.JAXRSArchive;
 import org.wildfly.swarm.keycloak.Secured;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 
 public class LifeLogDeployment {
 
@@ -26,30 +19,8 @@ public class LifeLogDeployment {
       .protect("/entries/*")
       .withMethod("POST", "PUT", "DELETE")
       .withRole("author");
-    replaceKeycloakJson(archive);
 
     return archive;
-  }
-
-  private static void replaceKeycloakJson(Archive archive) {
-    String keycloakPath = "WEB-INF/keycloak.json";
-    Node keycloakJson = archive.get(keycloakPath);
-    if (keycloakJson == null) {
-      // FIXME keycloak.json は wildfly-swarm:run で読めない
-      return;
-    }
-
-    StringBuilder sb = new StringBuilder();
-    try (BufferedReader reader =
-           new BufferedReader(new InputStreamReader(keycloakJson.getAsset().openStream()))) {
-      reader.lines().forEach(line -> {
-        line = line.replace("change_me", System.getProperty("auth.url", "http://localhost:18080/auth"));
-        sb.append(line).append("\n");
-      });
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    archive.add(new ByteArrayAsset(sb.toString().getBytes()), keycloakPath);
   }
 
 }

@@ -2,6 +2,8 @@
 
 まずは動作確認がてら、Hello World レベルの JAX-RS アプリケーションを作成します。
 
+> JAX-RS とは Java EE の仕様の 1 つであり、RESTful な API をアノテーションベースで作成することができます
+
 完成版は以下リポジトリにありますので、適宜参照ください。
 
 https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/helloworld

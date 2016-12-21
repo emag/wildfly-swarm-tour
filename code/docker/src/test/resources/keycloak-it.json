@@ -2,7 +2,7 @@
   "realm": "lifelog",
   "realm-public-key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwjjEd/r7wzg599XzAEyGS0gxNMe8lhisLYLRcyTxPB35AMIbVjGQUrhdjT6xmHegaQ47+Eb72f5phGFOBpmSh1Ce4xnBy1jGXQC1xBJy8lm67ivbp631xKLJRdacL96igR/v12DCy2K3kQ+GEcsxr9/JFBrRlsJxp01eZ6iBk3/0W9m/LzlSjYY7aFXrRtPTROgavGCHMNdfAhRLb7+uIMo2XyK5cg63KL9bVcWPu4aCgvnE+9BF7hc3kwaEYmw3QI9CW/Zg1AVOvai9THNVTSAKZxZckzSwYxHQtT9kTZdKW67mih5tbpe/dF+OAZtet5VI9tUpj4rSRhKVFw3YuwIDAQAB",
   "bearer-only": true,
-  "auth-server-url": "change_me",
+  "auth-server-url": "http://localhost:28080/auth",
   "ssl-required": "external",
   "resource": "lifelog"
 }

@@ -73,7 +73,8 @@ $ docker run -it -d \
   --name lifelog  \
   -v `pwd`:/tmp/project \
   -p 8080:8080 \
-  emag/lifelog -Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml
+  emag/lifelog \
+  -Dswarm.project.stage.file=file:///tmp/project/project-stages.yml
 ```
 
 * -d: デーモンとして起動
@@ -82,7 +83,7 @@ $ docker run -it -d \
 * -p: 8080:8080 を指定することで、ローカルホスト(Docker ホスト)の 8080 ポートを Docker コンテナの 8080 ポートにポートフォワード
 * emag/lifelog: イメージを指定。以降に指定した値は ENTRYPOINT に指定したコマンドのオプションのように扱えます。
 
-`docker ps` コマンドで、起動中のコンテナを確認できます。以下のように表示されていれば OK です。いつものように curl でアクセスしてみてください。
+`docker ps` コマンドで、起動中のコンテナを確認できます。以下のように表示されていれば OK です。
 
 ``` sh
 $ docker ps
@@ -90,24 +91,95 @@ CONTAINER ID  IMAGE         COMMAND                CREATED        STATUS        
 fe8ece48806b  emag/lifelog  "java -jar /opt/lifel" 3 minutes ago  Up 3 minutes  0.0.0.0:8080->8080/tcp  lifelog
 ```
 
-停止・削除関係のコマンドも確認しておきましょう。
+では、ここで curl で先ほどのように POST してみるとどうなるでしょうか。
 
-* 起動中のコンテナを停止 : `docker stop lifelog`
-* 停止中のコンテナを削除: `docker rm lifelog`
-* 起動中のコンテナを強制削除: `docker rm -f lifelog`
-* コンテナの出力の確認: `docker logs -f lifelog`
+``` sh
+$ curl -X POST -H "Content-Type: application/json" -H "Authorization: bearer $TOKEN" -d '{"description" : "test"}' localhost:8080/entries -v
+[...]
+< HTTP/1.1 403 Forbidden
+```
 
-いったん lifelog コンテナは削除しておきます。
+403 が返ってきてしまいました。これはどういうことでしょう?
+
+これは keycloak.json が正しくアーカイブに含まれていなかったことに起因します。`docker logs <コンテナ名>` コマンドで lifelog コンテナのログを確認してみます。
+
+> ちなみに docker logs コマンドは -f をつけると follow モードになります
+
+``` sh
+$ docker logs lifelog
+[...]
+2016-12-21 13:27:21,472 WARN  [org.wildfly.swarm.keycloak.runtime.SecuredArchivePreparer] (main) Unable to get keycloak.json from 'keycloak.json', fall back to get from classpath: java.nio.file.NoSuchFileException: keycloak.json
+2016-12-21 13:27:23,611 WARN  [org.keycloak.adapters.undertow.KeycloakServletExtension] (ServerService Thread Pool -- 11) No adapter configuration.  Keycloak is unconfigured and will deny all requests.
+```
+
+1つ目のログは 'keycloak.json' というパスに keycloak.json がなかった、と言っており、2 つ目のログはアダプター設定が無く、Keycloak が未設定であり全てのリクエストを拒否する、と言っています。
+
+lifelog コンテナ起動時に -v オプションとして `pwd`:/tmp/project としました。これは Docker ホストのカレントディレクトリである docker プロジェクト直下を、コンテナ内の /tmp/project にマウントすることを表します。
+そしてさりげなく `-Dswarm.project.stage.file=file:///tmp/project/project-stages.yml` と project-stages.yml の指定を `file:///tmp/project` としていますね。
+よって lifelog コンテナの lifelog アプリケーションは project-stages.yml のパスは解決できています。
+
+しかし、project-stages.yml 内で `swarm.keycloak.json.path` の値は相対パスで keycloak.json とパス指定しているのでした。
+コンテナ内で java コマンドを実行するパスには確かに keycloak.json はないので、この相対パスではだめですね。
+project-stages.yml と同様、`/tmp/project/keycloak.json` といった形にする必要がありそうです。
+
+> 今回のように `swarm.keycloak.json.path` で指定されたパスに keycloak.json が無かった場合は　1 つ目のログにあるとおりクラスパスから探すようにフォールバックするのですが、
+> クラスパスにも存在しないのでアーカイブには keycloak.json が含まれていません。そういった場合、2 つ目のログのとおり Keycloak クライアントは 403 を返すという挙動になっています。
+
+話は変わりますがこの lifelog コンテナを起動する際、ステージ指定していなかったため default ステージとなり、データベースは H2 が利用されます。PostgreSQL を利用するよう production を指定するとどうなるでしょうか。
+
+とりあえず、いったん lifelog コンテナは削除しておきます。
 
 ``` sh
 $ docker rm -f lifelog
 ```
 
+ついでにここで停止・削除関係のコマンドも確認しておきましょう。
+
+* 起動中のコンテナを停止: `docker stop lifelog`
+* 停止中のコンテナを削除: `docker rm lifelog`
+* 起動中のコンテナを強制削除: `docker rm -f lifelog`
+
+では、あらためて以下コマンドで production 指定で lifelog コンテナを起動します。
+
+``` sh
+$ docker run -it --rm \
+  --name lifelog  \
+  -v `pwd`:/tmp/project \
+  -p 8080:8080 \
+  emag/lifelog \
+  -Dswarm.project.stage.file=file:///tmp/project/project-stages.yml \
+  -Dswarm.project.stage=production
+```
+
+> ここでは -d をつけていないのでフォアグランドでコンテナが起動します。
+> また、--rm はコンテナ停止とともにコンテナを削除するオプションです。
+
+わんさと wARN と ERROR が出ますね。注目すべきは以下です。
+
+``` sh
+Caused by: org.postgresql.util.PSQLException: Connection to localhost:5432 refused.
+Check that the hostname and port are correct and that the postmaster is accepting TCP/IP connections.
+```
+
+localhost:5432 にリスンしている PostgreSQL に接続できなかった、とあります。localhost:5432 というのは project-stages.yml で指定した値ですね。
+
+この場合、コンテナ内で起動している lifelog アプリケーションから見た場合、localhost というのはコンテナ内の自分自身ということになります。
+lifelog コンテナで PostgreSQL が動いているわけではないので、接続に失敗したというのはそりゃそうだ、ということですね。
+
+実際に PostgreSQL が起動しているのは別途起動していた lifelog-db コンテナでした。コンテナ内の PostgreSQL の 5432 ポートに対して Docker ホストの 5432 ポートをポートフォワードしています。
+なので localhost は Docker ホスト自身のことを指していたのでしたね。実際には lifelog コンテナが lifelog-db コンテナに通信できるようにならないといけません。
+
+先ほどの keycloak.json のパス指定の問題とあわせて、このコンテナ間通信については次節で対応します。
+
+なお、今フォアグランドで起動しているコンテナは `Ctrl + C` で停止できます。
+
 ## PostgreSQL、Keycloak Server とのコンテナ間通信
 
-今までデータソース設定の接続 URL や keycloak.json 中の Keycloak Server の URL は Docker コンテナに対してホストからポートフォワードした `localhost:<port>` に決め打ちでした。ローカルで開発している分にはいいのですが、運用環境などでは別の IP アドレス(またはホスト名)であったりポート番号になるでしょう。
+まずはコンテナ間通信の問題を解決しましょう。
 
-Docker コンテナは同じホスト上では `--link <コンテナIDまたは名前>:<適当な名前>` オプションを使うと、その指定したコンテナの EXPOSE したポートやコンテナの IP アドレスを環境変数として取得することができます。
+今までデータソース設定の接続 URL や keycloak.json 中の Keycloak Server の URL は Docker コンテナに対してホストからポートフォワードした `localhost:<port>` に決め打ちでした。これでは前節で述べたとおり、コンテナ間でやりとりはできなくなってしまいます。コンテナ間で通信したい場合は `--link` オプションを利用します。
+
+Docker コンテナは同じホスト上では `--link <コンテナIDまたは名前>:<エイリアス>` オプションを使うと、エイリアス名で名前解決することができます。
 
 例えば、今回 PostgreSQL を以下のように起動しています。
 
@@ -118,104 +190,51 @@ Docker コンテナは同じホスト上では `--link <コンテナIDまたは�
   postgres:{{book.versions.postgresql}}
 </code></pre>
 
-ここで `--link lifelog-db:db` としてコンテナを起動すると、`db` を大文字にした `DB` を prefix とし、EXPOSE したポート番号(5432)を含んだ各種環境変数が得られます。確認のため、以下のようにチェック用のコンテナを起動してみます。
+確認のため `--link lifelog-db:db` を付与して適当なコンテナを起動し、`db` に対して ping を打ってみます。
 
 ``` sh
-$ docker run -it --rm --link lifelog-db:db jboss/base-jdk:8 env
+$ $ docker run -it --rm --link lifelog-db:db jboss/base-jdk:8 ping db
+PING db (172.17.0.3) 56(84) bytes of data.
+64 bytes from db (172.17.0.3): icmp_seq=1 ttl=64 time=0.130 ms
+64 bytes from db (172.17.0.3): icmp_seq=2 ttl=64 time=0.076 ms
+64 bytes from db (172.17.0.3): icmp_seq=3 ttl=64 time=0.119 ms
 [...]
-DB_PORT_5432_TCP_ADDR=172.17.0.13
-DB_PORT_5432_TCP_PORT=5432
-[...]
+# 気が済んだら Ctrl + C で停止
 ```
 
-よって、`--link` をつけて起動するアプリケーション(lifelog)側でこの環境変数を読めばよいということになります。
+`172.17.0.3` と表示されている通り、コンテナの IP アドレスが名前解決できています。
+よって今まで localhost:5432 としていた PostgreSQL の URL は `db:5432` にすればよいということになります。
+同様に lifelog-auth コンテナのエイリアスを auth としたして、localhost:18080 は `auth:8080` となります。
 
-> 別ホストの場合は `docker run` に `-e` オプションで環境変数を渡せるので、`-e DB_PORT_5432_TCP_ADDR=db.server` などとします。
-> もっと大規模になれば Docker Swarm や Kubernetes などを使ってオーケストレーションするか、または Docker に対応した PaaS 環境などを利用することになるかと思います。
+project-stages.yml に Docker 用のステージを追加してみましょう。
 
-というわけで、環境変数が与えられた場合はそちらを利用するように PostgreSQL と Keycloak Server の URL の設定部分を変更します。
+``` yml
+---
+project:
+  stage: docker
+swarm:
+  datasources:
+    data-sources:
+      lifelogDS:
+        driver-name: postgresql
+        connection-url: jdbc:postgresql://db:5432/lifelog
+        user-name: lifelog
+        password: lifelog
+  keycloak:
+    json:
+      path: /tmp/project/keycloak-docker.json
+```
 
-完成版は以下リポジトリにありますので、適宜参照ください。
+変更点は `swarm.datasources.data-sources.lifelogDS.connection-url` と `swarm.keycloak.json.path` です。
+keycloak.json も Docker 用のものを keycloak-docker.json として以下の内容でプロジェクト直下に用意しておきます。auth-server-url だけ変更しておきます。
 
-https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/docker
-
-URL をシステムプロパティ `swarm.datasources.data-sources.lifelogDS.connection-url` および `auth.url` としてプログラム側で設定します。
-ここでは `wildlflyswarm.LifeLogConfigurationFromEnv` というクラスを以下のように作成しました。
-`setupUrl()` ではそれぞれ与えられた環境変数がそれっぽければ、各システムプロパティとして設定します。
-
-``` java
-package wildflyswarm;
-
-public class LifeLogConfigurationFromEnv {
-
-  public static void setupUrl(String property, String addr, String port, String format) {
-    if (! isValidUrl(addr, port)) return;
-
-    String urlFromEnv = getUrlFromEnv(addr, port);
-
-    System.setProperty(
-      property,
-      String.format(format, urlFromEnv));
-  }
-
-  private static boolean isValidUrl(String addr, String port) {
-    String addrFromEnv = System.getenv(addr);
-    if (addrFromEnv == null) return false;
-
-    String portFromEnv = System.getenv(port);
-    if (portFromEnv == null) return false;
-
-    return true;
-  }
-
-  private static String getUrlFromEnv(String addr, String port) {
-    return System.getenv(addr) + ":" + System.getenv(port);
-  }
-
+``` json
+{
+  [...]
+  "auth-server-url": "http://auth:8080/auth",
+  [...]
 }
 ```
-
-次に、この LifeLogConfiguration#setUrl() を Bootstrap クラスで利用します。
-
-``` java
-package wildflyswarm;
-
-import org.wildfly.swarm.Swarm;
-
-public class Bootstrap {
-
-  public static void main(String[] args) throws Exception {
-    // 追記ここから
-    LifeLogConfigurationFromEnv.setupUrl(
-      "swarm.datasources.data-sources.lifelogDS.connection-url",
-      "DB_PORT_5432_TCP_ADDR",
-      "DB_PORT_5432_TCP_PORT",
-      "jdbc:postgresql://%s/lifelog"
-    );
-
-    LifeLogConfigurationFromEnv.setupUrl(
-      "auth.url",
-      "AUTH_PORT_8080_TCP_ADDR",
-      "AUTH_PORT_8080_TCP_PORT",
-      "http://%s/auth"
-    );
-    // 追記ここまで
-
-    new Swarm(args)
-      .start()
-      .deploy(LifeLogDeployment.deployment());
-  }
-
-}
-```
-
-ここまで変更したら lifelog のビルド及びイメージのビルドを実行します。
-
-``` sh
-$ ./mvnw clean package && docker build -t emag/lifelog .
-```
-
-これで `--link` を用いて各サーバのコンテナの URL を取得できるようになります。
 
 PostgreSQL と Keycloak Server のコンテナをそれぞれ lifelog-db、lifelog-auth という名前で起動しているとして、以下のように `docker run` で lifelog コンテナを起動します。
 
@@ -226,29 +245,31 @@ $ docker run -it -d \
   --link lifelog-db:db \
   --link lifelog-auth:auth \
   -p 8080:8080 \
-  emag/lifelog -Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml -Dswarm.project.stage=production
+  emag/lifelog \
+  -Dswarm.project.stage.file=file:///tmp/project/project-stages.yml \
+  -Dswarm.project.stage=docker
 ```
 
-`docker logs -f lifelog` とすると lifelog のログが確認できます。ログ中にあるコネクションの URL が、以下のように環境変数から得られたコンテナの IP アドレスに設定されていればオッケーです。
+`docker logs -f lifelog` とすると lifelog のログが確認できます。
+
+まず、ログ中にあるコネクションの URL が、以下のように設定されており、DB とのコネクションエラーが出ていなければオッケーです。
 
 ```
-swarm.datasources.data-sources.lifelogDS.connection-url = jdbc:postgresql://172.17.0.2:5432/lifelog
+swarm.datasources.data-sources.lifelogDS.connection-url = jdbc:postgresql://db:5432/lifelog
 ```
 
-今まで TOKEN を取得するのにポートフォワードしていた http://localhost:18080/auth を指していましたが、lifelog の keycloak.json ではもうこちらではなく Keycloak Server コンテナの IP アドレスを指しているため、取得時の URI を変える必要があります。
+また、keycloak.json が見つからない旨のログが出ていないことも確認してみてください。
 
-まずは Keycloak Server コンテナの IP アドレスを取得します。
+問題なさそうであれば lifelog コンテナが正しく動作しているかチェックしてみます。
+
+今まで TOKEN を取得するのにポートフォワードしていた http://localhost:18080/auth を指していましたが、lifelog の keycloak.json ではもうこちらではなく http://auth:8080/auth を指しているため、取得時の URI を変える必要があります。
+
+Docker ホストからは auth というホスト名の名前解決はできないため、`docker exec` コマンドを利用して lifelog コンテナ経由でトークンを取得することにします。
+
+> 先ほど --link を試したときのように使い捨てのコンテナで行っても構いません
 
 ``` sh
-$ KEYCLOAK_SERVER=`docker ps | grep lifelog-auth | awk '{print $1}' | xargs docker inspect --format="{{.NetworkSettings.IPAddress}}:8080"`
-```
-
-> 8080 のところもがんばればできますが、ちょっと複雑になるようなので妥協! どなたかスマートなやり方をご存知でしたらこっそり教えてください。
-
-上記で得た Keycloak Server コンテナの IP アドレスを用いて TOKEN を取得します。
-
-``` sh
-$ RESULT=`curl --data "grant_type=password&client_id=curl&username=user1&password=password1" http://${KEYCLOAK_SERVER}/auth/realms/lifelog/protocol/openid-connect/token`
+$ RESULT=`docker exec -it lifelog curl --data "grant_type=password&client_id=curl&username=user1&password=password1" http://auth:8080/auth/realms/lifelog/protocol/openid-connect/token`
 $ TOKEN=`echo $RESULT | sed 's/.*access_token":"//g' | sed 's/".*//g'`
 ```
 
@@ -282,28 +303,31 @@ docker-compose version {{book.versions.docker_compose}}, build &lt;some number&g
 
 `docker run` するときの情報を並べただけって感じですね。
 
-<pre><code class="yml">lifelog:
-  image: emag/lifelog
-  volumes:
-    - .:/tmp/project
-  links:
-    - lifelog-db:db
-    - lifelog-auth:auth
-  ports:
-    - 8080:8080
-  command: ["-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml", "-Dswarm.project.stage=production"]
+<pre><code class="yml">version: '2'
 
-lifelog-db:
-  image: postgres:{{book.versions.postgresql}}
-  environment:
-    POSTGRES_USER: lifelog
-    POSTGRES_PASSWORD: lifelog
+services:
+  lifelog:
+    image: emag/lifelog
+    volumes:
+      - .:/tmp/project
+    links:
+      - lifelog-db:db
+      - lifelog-auth:auth
+    ports:
+      - 8080:8080
+    command: ["-Dswarm.project.stage.file=file:///tmp/project/project-stages.yml", "-Dswarm.project.stage=docker"]
 
-lifelog-auth:
-  image: jboss/keycloak:{{book.versions.keycloak}}
-  volumes:
-    - .:/tmp/project
-  command: ["-b 0.0.0.0", "-Dkeycloak.migration.action=import", "-Dkeycloak.migration.provider=singleFile", "-Dkeycloak.migration.file=/tmp/project/lifelog-realm.json"]
+  lifelog-db:
+    image: postgres:{{book.versions.postgresql}}
+    environment:
+      POSTGRES_USER: lifelog
+      POSTGRES_PASSWORD: lifelog
+
+  lifelog-auth:
+    image: jboss/keycloak:{{book.versions.keycloak}}
+    volumes:
+      - .:/tmp/project
+    command: ["-b 0.0.0.0", "-Dkeycloak.migration.action=import", "-Dkeycloak.migration.provider=singleFile", "-Dkeycloak.migration.file=/tmp/project/lifelog-realm.json"]
 </code></pre>
 
 まぎらわしいので前に手動で上げた lifelog/lifelog-db/lifelog-auth コンテナは止めておくか削除しておきましょう。

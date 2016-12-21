@@ -1,13 +1,14 @@
 package lifelog.api;
 
-import wildflyswarm.LifeLogDeployment;
 import lifelog.domain.model.Entry;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
+import org.jboss.shrinkwrap.api.asset.ClassLoaderAsset;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.wildfly.swarm.jaxrs.JAXRSArchive;
+import wildflyswarm.LifeLogDeployment;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -29,7 +30,11 @@ public class EntryControllerIT {
 
   @Deployment(testable = false)
   public static JAXRSArchive createDeployment() {
-    return LifeLogDeployment.deployment();
+    JAXRSArchive archive = LifeLogDeployment.deployment();
+    archive.addAsWebInfResource(
+      new ClassLoaderAsset("keycloak-it.json", EntryControllerIT.class.getClassLoader()),
+      "keycloak.json");
+    return archive;
   }
 
   @ArquillianResource

@@ -106,6 +106,9 @@ helloworld の時と同様に適当なディレクトリに移動し、こちら
 
 今回は JAX-RS と CDI、JPA を使えるようにしておきます(1)。この章では組込みの H2 データベースを利用するため、その依存も追加しておきます。
 
+> CDI とは Contexts and Dependency Injection の略であり、インスタンスのライフサイクル管理まで含めた DI が可能になります。
+> JPA はいわゆる O/R Mapper です。
+
 また、サードパーティのライブラリとして [Lombok](https://projectlombok.org/) を追加しています(2)。
 > Lombok 自体はコンパイル時のみにしか利用しないため(provided スコープ)、依存性を追加するこの設定以外にやることはないのですが、
 > ランタイム時にも必要なライブラリがある場合は、後述する `Archive#addAllDependencies()` を Bootstrap クラスで設定します。

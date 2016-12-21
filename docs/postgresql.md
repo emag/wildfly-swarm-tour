@@ -88,7 +88,7 @@ https://github.com/emag/wildfly-swarm-tour/tree/{{book.versions.swarm}}/code/pos
 </code></pre>
 
 次に、システムプロパティの値によって H2 と PostgreSQL を切り替えられるようにする部分です。
-`lifelog-project-stages.yml` というファイルを以下の内容で適当なパス(ここではプロジェクト直下)に配置します。
+`project-stages.yml` というファイルを以下の内容で適当なパス(ここではプロジェクト直下)に配置します。
 
 ``` yml
 swarm:
@@ -160,7 +160,7 @@ public static JAXRSArchive createDeployment() {
 
 ``` sh
 .
-├── lifelog-project-stages.yml
+├── project-stages.yml
 ├── pom.xml
 └── src
     ├── main
@@ -192,15 +192,14 @@ public static JAXRSArchive createDeployment() {
 ```
 
 ここまで出来て、PostgreSQL も起動していることも確認したうえで lifelog をビルド、実行します。
-ステージ用ファイルとステージの指定はそれぞれシステムプロパティ `swarm.project.stage.file`　と `swarm.project.stage` を渡します。
-なお、ファイルの指定にはプロトコルを渡す必要があります。
+ステージ用ファイルとステージの指定はそれぞれシステムプロパティ `swarm.project.stage` を渡します。
 
 ``` sh
-$ ./mvnw clean package \
-  && java -Dswarm.project.stage.file=file://`pwd`/lifelog-project-stages.yml \
-    -Dswarm.project.stage=production \
-    -jar target/lifelog-swarm.jar
+$ ./mvnw clean package && \
+  java -jar target/lifelog-swarm.jar -Dswarm.project.stage=production
 ```
+
+> なお、java の実行パス(user.dir)直下に project-stages.yml という名前のファイルがあると自動で認識されます
 
 POST したり psql でデータベースの中を見たりして、実際に PostgreSQL が使われていることを確認してみてください。
 
@@ -214,9 +213,13 @@ POST したり psql でデータベースの中を見たりして、実際に Po
 
 ``` sh
 $ ./mvnw clean verify \
-  -Dswarm.project.stage.file=file://`pwd`/lifelog-project-stages.yml \
+  -Dswarm.project.stage.file=file://`pwd`/project-stages.yml \
   -Dswarm.project.stage=production
 ```
+
+> Arquillian 実行時には user.dir が /tmp/arquillian5574290908184081425 といったパスになってしまうため、
+> `swarm.project.stage.file` で project-stages.yml のパスを指定します。
+> なお、ファイルの指定にはプロトコルを渡す必要があります。
 
 ただしこのままだと Integration Test なのにプロダクション環境のデータベースを使ってしまっていますね。`---` で区切って 1 つステージを増やしておきましょう。
 
@@ -381,7 +384,7 @@ https://dmp.fabric8.io/
 
 ``` sh
 $ ./mvnw clean verify \
-  -Dswarm.project.stage.file=file://`pwd`/lifelog-project-stages.yml \
+  -Dswarm.project.stage.file=file://`pwd`/project-stages.yml \
   -Dswarm.project.stage=it \
   -Pit
 ```
