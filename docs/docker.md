@@ -302,28 +302,31 @@ docker-compose version {{book.versions.docker_compose}}, build &lt;some number&g
 
 `docker run` するときの情報を並べただけって感じですね。
 
-<pre><code class="yml">lifelog:
-  image: emag/lifelog
-  volumes:
-    - .:/tmp/project
-  links:
-    - lifelog-db:db
-    - lifelog-auth:auth
-  ports:
-    - 8080:8080
-  command: ["-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml", "-Dswarm.project.stage=production"]
+<pre><code class="yml">version: '2'
 
-lifelog-db:
-  image: postgres:{{book.versions.postgresql}}
-  environment:
-    POSTGRES_USER: lifelog
-    POSTGRES_PASSWORD: lifelog
+services:
+  lifelog:
+    image: emag/lifelog
+    volumes:
+      - .:/tmp/project
+    links:
+      - lifelog-db:db
+      - lifelog-auth:auth
+    ports:
+      - 8080:8080
+    command: ["-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml", "-Dswarm.project.stage=docker"]
 
-lifelog-auth:
-  image: jboss/keycloak:{{book.versions.keycloak}}
-  volumes:
-    - .:/tmp/project
-  command: ["-b 0.0.0.0", "-Dkeycloak.migration.action=import", "-Dkeycloak.migration.provider=singleFile", "-Dkeycloak.migration.file=/tmp/project/lifelog-realm.json"]
+  lifelog-db:
+    image: postgres:{{book.versions.postgresql}}
+    environment:
+      POSTGRES_USER: lifelog
+      POSTGRES_PASSWORD: lifelog
+
+  lifelog-auth:
+    image: jboss/keycloak:{{book.versions.keycloak}}
+    volumes:
+      - .:/tmp/project
+    command: ["-b 0.0.0.0", "-Dkeycloak.migration.action=import", "-Dkeycloak.migration.provider=singleFile", "-Dkeycloak.migration.file=/tmp/project/lifelog-realm.json"]
 </code></pre>
 
 まぎらわしいので前に手動で上げた lifelog/lifelog-db/lifelog-auth コンテナは止めておくか削除しておきましょう。
