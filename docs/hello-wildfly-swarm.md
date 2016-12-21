@@ -365,14 +365,6 @@ $ curl localhost:8080/helloworld/hello
 
 実は WildFly Swarm では以下サンプルのように war でもパッケージングできます。
 
-https://github.com/wildfly-swarm/wildfly-swarm-examples/tree/{{book.versions.swarm}}/jaxrs/jaxrs-war
+使い分けの指針については以下公式ブログを参照ください。
 
-また main() を設定 することもできます。
-
-https://github.com/wildfly-swarm/wildfly-swarm-examples/tree/{{book.versions.swarm}}/jaxrs/jaxrs-war-main
-
-既存のアプリケーションをとりあえず WildFly Swarm に対応させるのに便利かと思います。
-
-war パッケージングに関するドキュメントは以下です。
-
-https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.versions.swarm}}/getting-started/war-applications.html
+http://wildfly-swarm.io/posts/to-war-or-jar/
