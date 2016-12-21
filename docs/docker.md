@@ -109,9 +109,10 @@ $ curl -X POST -H "Content-Type: application/json" -H "Authorization: bearer $TO
 $ docker logs lifelog
 [...]
 2016-12-21 13:27:21,472 WARN  [org.wildfly.swarm.keycloak.runtime.SecuredArchivePreparer] (main) Unable to get keycloak.json from 'keycloak.json', fall back to get from classpath: java.nio.file.NoSuchFileException: keycloak.json
+2016-12-21 13:27:23,611 WARN  [org.keycloak.adapters.undertow.KeycloakServletExtension] (ServerService Thread Pool -- 11) No adapter configuration.  Keycloak is unconfigured and will deny all requests.
 ```
 
-'keycloak.json' というパスに keycloak.json がなかった、と言っています。
+1つ目のログは 'keycloak.json' というパスに keycloak.json がなかった、と言っており、2 つ目のログはアダプター設定が無く、Keycloak が未設定であり全てのリクエストを拒否する、と言っています。
 
 lifelog コンテナ起動時に -v オプションとして `pwd`:/tmp/project としました。これは Docker ホストのカレントディレクトリである docker プロジェクト直下を、コンテナ内の /tmp/project にマウントすることを表します。
 そしてさりげなく `-Dswarm.project.stage.file=file:///tmp/project/project-stages.yml` と project-stages.yml の指定を `file:///tmp/project` としていますね。
@@ -121,8 +122,8 @@ lifelog コンテナ起動時に -v オプションとして `pwd`:/tmp/project 
 コンテナ内で java コマンドを実行するパスには確かに keycloak.json はないので、この相対パスではだめですね。
 project-stages.yml と同様、`/tmp/project/keycloak.json` といった形にする必要がありそうです。
 
-> 今回のように `swarm.keycloak.json.path` で指定されたパスに keycloak.json が無かった場合はクラスパスから探すようにフォールバックするのですが、
-> クラスパスにも存在しないのでアーカイブには keycloak.json が含まれていません。そういった場合、Keycloak クライアントは 403 を返すという挙動になっています。
+> 今回のように `swarm.keycloak.json.path` で指定されたパスに keycloak.json が無かった場合は　1 つ目のログにあるとおりクラスパスから探すようにフォールバックするのですが、
+> クラスパスにも存在しないのでアーカイブには keycloak.json が含まれていません。そういった場合、2 つ目のログのとおり Keycloak クライアントは 403 を返すという挙動になっています。
 
 話は変わりますがこの lifelog コンテナを起動する際、ステージ指定していなかったため default ステージとなり、データベースは H2 が利用されます。PostgreSQL を利用するよう production を指定するとどうなるでしょうか。
 
