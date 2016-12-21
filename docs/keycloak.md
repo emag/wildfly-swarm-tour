@@ -110,11 +110,9 @@ project:
 では上記変更をふまえて lifelog をビルド・実行し、アクセスしてみましょう(Keycloak を 18080 ポートで起動しておくことを忘れずに)。
 
 ``` sh
-$ ./mvnw clean package \
-  && java \
-  -Dswarm.project.stage.file=file://`pwd`/lifelog-project-stages.yml \
-  -Dswarm.project.stage=production \
-  -jar target/lifelog-swarm.jar
+$ ./mvnw clean package && \
+  java -jar target/lifelog-swarm.jar \
+  -Dswarm.project.stage=production
 ```
 
 > PostgreSQL を使わない場合は -Dswarm.project.stage=default にするか、このシステムプロパティを渡さないようにしてください
@@ -305,7 +303,7 @@ response = target.request()
 
 ``` sh
 $ ./mvnw clean verify \
-  -Dswarm.project.stage.file=file://`pwd`/lifelog-project-stages.yml \
+  -Dswarm.project.stage.file=file://`pwd`/project-stages.yml \
   -Dswarm.project.stage=it \
   -Dauth.url=http://localhost:28080/auth \
   -Pit

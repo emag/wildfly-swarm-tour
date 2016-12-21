@@ -74,7 +74,7 @@ $ docker run -it -d \
   -v `pwd`:/tmp/project \
   -p 8080:8080 \
   emag/lifelog \
-  -Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml
+  -Dswarm.project.stage.file=file:///tmp/project/project-stages.yml
 ```
 
 * -d: デーモンとして起動
@@ -114,7 +114,7 @@ $ docker logs lifelog
 'keycloak.json' というパスに keycloak.json がなかった、と言っています。
 
 lifelog コンテナ起動時に -v オプションとして `pwd`:/tmp/project としました。これは Docker ホストのカレントディレクトリである docker プロジェクト直下を、コンテナ内の /tmp/project にマウントすることを表します。
-そしてさりげなく `-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml` と project-stages.yml の指定を `file:///tmp/project` としていますね。
+そしてさりげなく `-Dswarm.project.stage.file=file:///tmp/project/project-stages.yml` と project-stages.yml の指定を `file:///tmp/project` としていますね。
 よって lifelog コンテナの lifelog アプリケーションは project-stages.yml のパスは解決できています。
 
 しかし、project-stages.yml 内で `swarm.keycloak.json.path` の値は相対パスで keycloak.json とパス指定しているのでした。
@@ -146,7 +146,7 @@ $ docker run -it --rm \
   -v `pwd`:/tmp/project \
   -p 8080:8080 \
   emag/lifelog \
-  -Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml \
+  -Dswarm.project.stage.file=file:///tmp/project/project-stages.yml \
   -Dswarm.project.stage=production
 ```
 
@@ -245,7 +245,7 @@ $ docker run -it -d \
   --link lifelog-auth:auth \
   -p 8080:8080 \
   emag/lifelog \
-  -Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml \
+  -Dswarm.project.stage.file=file:///tmp/project/project-stages.yml \
   -Dswarm.project.stage=docker
 ```
 
@@ -314,7 +314,7 @@ services:
       - lifelog-auth:auth
     ports:
       - 8080:8080
-    command: ["-Dswarm.project.stage.file=file:///tmp/project/lifelog-project-stages.yml", "-Dswarm.project.stage=docker"]
+    command: ["-Dswarm.project.stage.file=file:///tmp/project/project-stages.yml", "-Dswarm.project.stage=docker"]
 
   lifelog-db:
     image: postgres:{{book.versions.postgresql}}
