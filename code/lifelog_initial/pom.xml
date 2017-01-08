@@ -5,7 +5,7 @@
 
   <groupId>wildflyswarmtour</groupId>
   <artifactId>lifelog</artifactId>
-  <version>2016.12.1</version>
+  <version>2017.1.1</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
