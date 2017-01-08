@@ -30,11 +30,7 @@ public class EntryControllerIT {
 
   @Deployment(testable = false)
   public static JAXRSArchive createDeployment() {
-    JAXRSArchive archive = LifeLogDeployment.deployment();
-    archive.addAsWebInfResource(
-      new ClassLoaderAsset("keycloak-it.json", EntryControllerIT.class.getClassLoader()),
-      "keycloak.json");
-    return archive;
+    return LifeLogDeployment.deployment();
   }
 
   @ArquillianResource

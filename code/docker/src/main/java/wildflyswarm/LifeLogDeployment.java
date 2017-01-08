@@ -14,6 +14,9 @@ public class LifeLogDeployment {
     archive.addAsWebInfResource(
       new ClassLoaderAsset("META-INF/persistence.xml", Bootstrap.class.getClassLoader()),
       "classes/META-INF/persistence.xml");
+    archive.addAsWebInfResource(
+      new ClassLoaderAsset("keycloak.json", Bootstrap.class.getClassLoader()),
+      "keycloak.json");
 
     archive.as(Secured.class)
       .protect("/entries/*")
