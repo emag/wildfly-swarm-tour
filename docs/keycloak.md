@@ -15,10 +15,10 @@ Keycloak を利用した場合の大ざっぱな仕組みとしては以下の�
 
 ここではすでに用意した Keycloak の設定ファイル(keycloak.json/lifelog-realm.json)を利用しますので、以下からダウンロードしそれぞれ配置してください。
 
-* keycloak.json(プロジェクト直下)
- * https://gist.githubusercontent.com/emag/c16eb10eed22d1cb944cecb4b7168dd4/raw/1ca821c8e845cb2ec8a8bcd618ca96f1bbdc0f2b/keycloak.json
+* keycloak.json(src/main/resources 配下)
+ * https://raw.githubusercontent.com/emag/wildfly-swarm-tour/{{book.versions.swarm}}/code/keycloak/src/main/resources/keycloak.json
 * lifelog-realm.json(プロジェクト直下)
- * https://gist.githubusercontent.com/emag/c16eb10eed22d1cb944cecb4b7168dd4/raw/1ca821c8e845cb2ec8a8bcd618ca96f1bbdc0f2b/lifelog-realm.json
+ * https://raw.githubusercontent.com/emag/wildfly-swarm-tour/{{book.versions.swarm}}/code/keycloak/lifelog-realm.json
 
 ご自分で設定ファイルを作成してみたい場合は [付録 Keycloak の設定](keycloak-settings.md) を参照ください。
 
@@ -81,11 +81,33 @@ archive.as(Secured.class)
 >
 > https://wildfly-swarm.gitbooks.io/wildfly-swarm-users-guide/content/v/{{book.versions.swarm}}/security/keycloak.html
 
-また、Keycloak のクライアント側の設定ファイルとして keycloak.json がありますので、これをプロジェクト配下に置いておきます(すでに冒頭で置いたものです)。
+また、Keycloak のクライアント側の設定ファイルとして keycloak.json がありますので、これを `src/main/resources` 配下に置いておきます(すでに冒頭で置いたものです)。
 
 > keycloak.json はセキュリティ設定の realm や Keyclaok サーバの URL などを設定します。
 
-最後に keyloak.json のパスを project-stages.yml に default ステージに指定します。システムプロパティは `swarm.keycloak.json.path` です。
+この keycloak.json はクラスパス直下においてあると WildFly Swarm が自動で読み込んでくれるのですが、Arquillian によるテスト時には読まれないため、アーカイブに追加するコードを記述しておきます。
+
+``` java
+archive.addAsWebInfResource(
+  new ClassLoaderAsset("keycloak.json", Bootstrap.class.getClassLoader()),
+  "keycloak.json");
+```
+
+先ほど配置した keycloak.json の内容を見ると、以下のようになっています。
+
+``` json
+{
+  "realm": "lifelog",
+  "realm-public-key": "...",
+  "bearer-only": true,
+  "auth-server-url": "${keycloak.auth-server-url}",
+  "ssl-required": "external",
+  "resource": "lifelog"
+}
+```
+
+ほとんどの値はハードコードされていますが、Keycloak Server の URL を表す `auth-server-url` はシステムプロパティ `keycloak.auth-server-url` から設定されるようにしています。
+この値はステージによって異なることがあるため、以下のように project-stages.yml で設定することにします。
 
 ``` yml
 swarm:
@@ -96,18 +118,17 @@ swarm:
         connection-url: jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=TRUE
         user-name: sa
         password: sa
-  # 追記ここから
-  keycloak:
-    json:
-      path: keycloak.json # java コマンド実行パス(user.dir)からの相対パス、または絶対パスで指定
-  # 追記ここまで
+# 追記ここから
+keycloak:
+  auth-server-url: http://localhost:18080/auth
+# 追記ここまで
 ---
 project:
   stage: it
 [...]
 ```
 
-では上記変更をふまえて lifelog をビルド・実行し、アクセスしてみましょう(Keycloak を 18080 ポートで起動しておくことを忘れずに)。
+では上記変更をふまえて lifelog をビルド・実行し、アクセスしてみましょう(Keycloak Server を 18080 ポートで起動しておくことを忘れずに)。
 
 ``` sh
 $ ./mvnw clean package && \
@@ -206,35 +227,7 @@ $ curl -X POST -H "Content-Type: application/json" -H "Authorization: bearer $TO
 &lt;/plugin&gt;
 </code></pre>
 
-また、以下 URL からダウンロードできるファイルを `src/test/resources/keycloak-it.json` に配置します。
-
-https://gist.githubusercontent.com/emag/c16eb10eed22d1cb944cecb4b7168dd4/raw/1ca821c8e845cb2ec8a8bcd618ca96f1bbdc0f2b/keycloak-it.json
-
-> project-stages.yml の it ステージに IT 用の keycloak.json のパスを指定したいところですが、
-> Arquillian 実行時に project-stages.yml を読み込む際の user.dir が /tmp/arquillian5574290908184081425 といったパスになってしまい、
-> うまく相対パスが取れないのでここではクラスパスから取得するようにします。
-> /path/to/keycloak-it.json などと絶対パスでもよいならそちらを指定するのでもよいでしょう
-
-次に、`lifelog.api.EntryControllerIT` を修正します。
-
-まずは先ほどクラスパスに追加した keycloak-it.json をアーカイブに含める処理を `createDeployment()` に記述します。
-
-``` java
-import org.jboss.shrinkwrap.api.asset.ClassLoaderAsset;
-[...]
-
-@Deployment(testable = false)
-public static JAXRSArchive createDeployment() {
-  JAXRSArchive archive = LifeLogDeployment.deployment();
-  // keycloak-it.json を keycloak.json として WEB-INF 配下に追加
-  archive.addAsWebInfResource(
-    new ClassLoaderAsset("keycloak-it.json", EntryControllerIT.class.getClassLoader()),
-    "keycloak.json");
-  return archive;
-}
-```
-
-`test()` の内容も認証処理を含んだ形に変更していきます。
+次に、`lifelog.api.EntryControllerIT` のテスト内容を修正します。
 
 まず最初の方に以下のようなトークン取得処理を追加します。
 
@@ -308,6 +301,8 @@ $ ./mvnw clean verify \
   -Dauth.url=http://localhost:28080/auth \
   -Pit
 ```
+
+> `auth.url` と実行時にわざわざ渡しているのは、`testable=false` の Arquillian のテストの場合、test 実行側は　project-stages.yml のシステムプロパティが見えないからです
 
 うまくいきました? 余裕があればトークンなしや不正なトークンでリクエストすると 401 が出ることを確認するテストをしてみてもいいですね。
 

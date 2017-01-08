@@ -6,9 +6,8 @@ swarm:
         connection-url: jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=TRUE
         user-name: sa
         password: sa
-  keycloak:
-    json:
-      path: keycloak.json
+keycloak:
+  auth-server-url: http://localhost:18080/auth
 ---
 project:
   stage: it
@@ -20,6 +19,8 @@ swarm:
         connection-url: jdbc:postgresql://localhost:15432/lifelog
         user-name: lifelog
         password: lifelog
+keycloak:
+  auth-server-url: http://localhost:28080/auth
 ---
 project:
   stage: production
@@ -42,6 +43,5 @@ swarm:
         connection-url: jdbc:postgresql://db:5432/lifelog
         user-name: lifelog
         password: lifelog
-  keycloak:
-    json:
-      path: /tmp/project/keycloak-docker.json
+keycloak:
+  auth-server-url: http://auth:8080/auth

@@ -3,7 +3,7 @@
   "root": "./docs",
   "variables": {
     "versions": {
-      "swarm": "2016.12.1",
+      "swarm": "2017.1.1",
       "jdk": "8",
       "maven": "3.3.9",
       "h2": "1.4.193",
